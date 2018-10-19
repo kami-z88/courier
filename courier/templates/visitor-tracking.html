@@ -1,0 +1,48 @@
+{% extends "visitor-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block header %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Tracking{% endblock %}
+
+{% block content %}
+<div class="container container-tracking">
+    <div class="row">
+        <div class="card tracking-card">
+            <div class="card-head text-center">
+                <h1 >track items</h1>
+                <hr />
+            </div>
+            <form class="form-inline" action="" method="post">
+                {% csrf_token %}
+                <div class="form-group mb-2">
+                    <label for="tracking-textbox">Traking Code :</label>
+                </div>
+                <div class="form-group mx-sm-3 mb-2">
+                    {% render_field form %}
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Track</button>
+            </form>
+            {%  if error %}
+            <span class="error-message">{{ error }}</span>
+            {% endif %}
+            <div class="row card-body">
+                <h6 class="card-title col-md-12">Delivery information and status:</h6>
+                <span class="label col-md-6">Status:</span>
+                <span class="col-md-6">{{ package.get_status_display }}</span>
+                <span class="label col-md-6">Sender:</span>
+                <span class="col-md-6">{{ package.delivery.get_user_proper_name|title }}</span>
+                <span class="label col-md-6">Signer:</span>
+                <span class="col-md-6">{{ package.signer_name | title }}</span>
+                <span class="label col-md-6">Time Delivered:</span>
+                <span class="col-md-6">{{ package.handover_time }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

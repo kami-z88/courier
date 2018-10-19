@@ -1,0 +1,103 @@
+body{
+    background-image:url("/static/images/v-b.jpg");
+    background-repeat:no-repeat;
+    background-size:cover;
+}
+
+img {width:100%;}
+body{background:#f2f2f2;}
+.bg-blue {background:#c0c0ca;}
+.btn-danger {background:#ff4f1e;color:#fff!important;}
+.btn-danger:hover {background:#fff;color:#ff4f1e!important;}
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    color: #dd0000;
+    background-color: #f2f2f2;
+    border-color: transparent transparent #f3f3f3;
+    border-bottom: 3px solid !important;
+    font-weight: bold;
+}
+.nav-tabs .nav-link {
+    border-bottom: 1px solid #dd0000;
+    color: #696969;
+
+}
+
+.container-tracking {
+    margin-top:70px
+}
+
+.tracking-card {
+    margin:auto;
+    margin-top:2em;
+    width:60%
+}
+
+.card-head {
+    margin-top:0.8em;
+
+}
+.card-head > h1 {
+    color:green;
+}
+
+.card-head > hr {
+    width:94%;
+}
+
+.tracking-card > .form-inline {
+    margin:auto;
+    padding:1.25rem;
+}
+
+.card-title {
+    font-weight:bold;
+}
+
+.card-body > .label {
+    color:#026302;
+    font-weight:1.2em;
+}
+
+.error-message{
+    text-align:center;
+    color:red;
+    border: 1px solid red;
+    border-radius:5px;
+    width:70%;
+    margin:auto;
+    padding:1em;
+}
+
+.modal-title {
+    margin:auto;
+}
+
+
+/*
+    Page: visitor-services.html
+*/
+.service-cards-wrapper {
+    margin:auto;
+    margin-top:5em;
+    padding-top:0.5em;
+    text-align:center;
+}
+.service-cards-wrapper > .card {
+    display:inline-block;
+    margin-bottom:5px;
+    min-height:380px;
+}
+
+.service-cards-wrapper > h3 {
+    text-align:center;
+    color:green;
+    margin-bottom:1em;
+}
+
+.card-text {
+    height: 70px;
+}
+
+.bg-blue {
+    height:580px;
+}

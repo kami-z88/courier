@@ -1,0 +1,43 @@
+{% extends "courier-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/courier.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block footer-after %}<script src="{% static 'js/courier.js' %}"></script> {% endblock %}
+
+{% block content %}
+
+    {% block modals %}
+    {%  endblock %}
+<div class="container">
+    <div class="row top-row">
+        <div class="col-md-2"><h5>Show Tasks:</h5></div>
+        <div class="col-md-7">
+            <a style="display:none" class="radio-inline so" href="{% url 'smart_sort' %}"><input type="radio" name="display-order" value="">Smart Order</a>
+            <a style="display:none" class="radio-inline co" href="{% url 'custom_sort' %}"><input type="radio" name="display-order" value="">Custom Order</a>
+            <a class="radio-inline sp" href="{% url 'should_pickup' %}"><input type="radio" name="display-order" value="">Should Pickup</a>
+            <a class="radio-inline pu" href="{% url 'pickedup' %}"><input type="radio" name="display-order" value="">Picked Up</a>
+            <a class="radio-inline rp" href="{% url 'rejected_pickup' %}"><input type="radio" name="display-order" value="">Rejected</a>
+        </div>
+        <div class="col-md-3">
+            <a class="radio-inline tt drop-target-task"  style="width:152px;" href="{% url 'target_task' %}" ondragover="allowDrop(event)" ondrop="put_task_on_target()">
+                <input type="radio" name="display-order" value=""><span style="margin-left:4px"><i class="fas fa-crosshairs"></i>Target Tasks</span>
+            </a>
+            <button class="btn  expand-collapse map hidden"><i class="fas fa-expand"></i><b id="text-map">Map</b></button>
+        </div>
+    </div>
+    <hr />
+    {% block second_row %}
+        <!-- The contents of sub-pages load here -->
+    {% endblock %}
+</div>
+{% endblock %}
+
+
+

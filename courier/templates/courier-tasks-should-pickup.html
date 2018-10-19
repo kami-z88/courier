@@ -1,0 +1,40 @@
+{% extends "courier-tasks.html" %}
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+
+{% block title %}Should Pickup{% endblock %}
+
+{% block second_row %}
+    {% for delivery in deliveries %}
+    <div class="row delivery-wrapper" draggable="true" data-dlvry-id="{{ delivery.id }}" ondragstart="drag_task(event)">
+        <span class="col-sm-3">
+            <button class="btn btn-default" onclick="put_task_on_target()">Add to target</button>
+            <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
+            <span class="badge badge-primary badge-pkg-count"> <i class="fas fa-cubes "><a class="package-count"> {{ delivery.package_set.count }}</a></i></span>
+        </span>
+        <span class="col-sm-3"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title }}</span>
+        <span class="col-sm-4"><b>Request Time:</b>&nbsp;{{ delivery.request_time_created }}</span>
+        <span class="col-sm-2"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
+        <span class="col-sm-12 address"><b>From Address:</b>&nbsp;{{ delivery.from_address }}</span>
+        <div class="hideable hidden">
+            <hr class="separator"/>
+            <h6>Package Numbers:&nbsp;{{ delivery.package_set.count }}</h6>
+            {% for package in delivery.package_set.all %}
+            <div class="row package-wrapper">
+                <span class="col-sm-4"><b>Packge Type:</b>&nbsp;{{ package.template }}</span>
+                <span class="col-sm-4"><b>Sig. Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
+                <span class="col-sm-4">blank</span>
+                <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    {% if not deliveries %}
+     <div class="row delivery-wrapper">
+        <span style="margin:auto;">No delivery request to pickup!</span>
+     </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "user-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/user.css' %}" rel="stylesheet">
+<link href="{% static 'css/datatables.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block footer-after %}
+<script type="text/javascript" src="{% static 'js/datatables.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/user.js' %}"></script>
+{% endblock %}
+
+{% block title %}Tracking{% endblock %}
+
+{% block content %}
+<div class="container tracking-table-container">
+    <div class="row">
+        <table id="tracking-table" class="display col-12" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Tracking ID</th>
+                    <th> + Packages #</th>
+                    <th>Status</th>
+                    <th>Request Date</th>
+                    <th>Report</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for delivery in deliveries %}
+                <tr>
+                    <td>{{ delivery.tracking_id }}</td>
+                    <td>{{ delivery.packages.count }}</td>
+                    <td>{{ delivery.get_status_display }}</td>
+                    <td>{{ delivery.request_time_created }}</td>
+                    <td><a href="{% url 'delivery_report' delivery.tracking_id %}">Report</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+{% endblock %}
+

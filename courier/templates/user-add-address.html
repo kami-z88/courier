@@ -1,0 +1,47 @@
+{% extends "user-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block header %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+<link href="{% static 'css/user.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block footer-after %}
+<script type="text/javascript" src="{% static 'js/user-address-book.js' %}"></script>
+{% endblock %}
+
+
+{% block title %}Address Book{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <form class="add-address-form col-xm-12 col-md-6 col-lg-6" action="" method="post">
+            <h4 class="address-title">add new address</h4>
+            {% csrf_token%}
+            {{ form.non_field_errors }}
+            {% for field in address_book_form %}
+            <div class="row">
+                <span class="col-md-3">{{ field.label}}:</span>
+                {% render_field field placeholder+=field.label class+="col-md-9 form-control input-lg" %}
+            </div>
+            {% endfor %}
+            {% for field in address_form %}
+            <div class="row">
+                <span class="col-md-3">{{ field.label}}:</span>
+                {% render_field field  class+="col-md-9 form-control input-lg" %}
+                {{ field.errors }}
+            </div>
+            {% endfor %}
+            <div class="row">
+                <div class="btn-wrapper col-md-12">
+                    <input  class="btn btn-success" type="submit" value="Add Address">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock%}

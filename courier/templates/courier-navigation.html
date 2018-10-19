@@ -1,0 +1,9 @@
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+<li class="nav-item"><a class="nav-link tasks" href="{% url 'should_pickup' %}">Tasks</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'courier_delivered' %}">Delivered</a></li>
+<audio id="alertAudio">
+  <source src="{% static 'sound/notify-courier.mp3' %}" type="audio/mpeg">
+</audio>

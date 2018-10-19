@@ -1,0 +1,44 @@
+{% extends "courier-tasks.html" %}
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+
+{% block title %}Picked Up{% endblock %}
+
+{% block second_row %}
+    {% for delivery in pickedup_deliveries %}
+        {%  for package in delivery.package_set.all %}
+        {% if package.status == "pc" %}
+        <div class="row package-wrapper" draggable="true" data-pckg-id="{{ package.id }}" ondragstart="drag_task(event)">
+            <span class="col-sm-4">
+                <button class="btn btn-default" onclick="put_task_on_target()">Add to target</button>
+                <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
+            </span>
+            <span class="col-sm-4"><b>Packge Type:</b>&nbsp;{{ package.template }}</span>
+            <span class="col-sm-4"><b>Signature Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
+            <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
+            <span class="col-sm-4"><b>Request Time:</b>&nbsp;{{ delivery.request_time_created }}</span>
+            <span class="col-sm-4"><b>Pickup Time:</b>&nbsp;{{ package.pickup_time }}</span>
+            <span class="col-sm-4"><b>Remaining Time:</b>&nbsp;.......</span>
+            <span class="col-sm-6"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title }}</span>
+            <span class="col-sm-6"><b>PckgID:</b>&nbsp;{{ package.id }}</span>
+            <div class="hideable hidden">
+                <hr class="separator"/>
+                <div class="row delivery-wrapper">
+                    <span class="col-sm-2 address"><b>From Address:</b></span>
+                    <span class="col-sm-10 address">{{ delivery.from_address }}</span>
+                    <span class="col-sm-6"><b>Requester:</b>&nbsp;{{ delivery.user }}</span>
+                    <span class="col-sm-6"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    {% endfor %}
+    {% if pickedup_count == 0 %}
+    <div class="row delivery-wrapper">
+    <span style="margin:auto;">No packages to handover!</span>
+    </div>
+    {% endif %}
+{% endblock %}

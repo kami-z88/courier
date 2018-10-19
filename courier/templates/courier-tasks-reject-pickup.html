@@ -1,0 +1,39 @@
+{% extends "courier-tasks.html" %}
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+
+{% block title %}Rejected requests{% endblock %}
+
+{% block second_row %}
+   <h3>Rejected requests</h3>
+   <div class="row">
+      <div class="table-responsive col-md-12">
+         <table class="table table-striped">
+            <thead>
+               <tr>
+                  <th>Requester</th>
+                  <th>Rejection reason</th>
+                  <th>Package ID</th>
+                  <th>Details</th>
+               </tr>
+            </thead>
+            <tbody>
+               {% for delivery in deliveries %}
+                  {% for package in delivery.package_set.all %}
+                     {% for comment in package.comments.all %}
+                        <tr>
+                           <td>{{ delivery.user }}</td>
+                           <td>{{ comment.message }}</td>
+                           <td>{{ package.id }}</td>
+                           <td><a href="#">details</a> </td>
+                        </tr>
+                     {% endfor %}
+                  {% endfor %}
+               {% endfor %}
+            </tbody>
+         </table>
+      </div>
+   </div>
+{% endblock %}

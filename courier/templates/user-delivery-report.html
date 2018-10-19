@@ -1,0 +1,56 @@
+{% extends "user-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/user.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block footer-after %}
+{% endblock %}
+
+{% block title %}Delivery Report{% endblock %}
+
+{% block content %}
+<div class="delivery-report">
+    <dl class="row">
+        <dt class="col-sm-3">Delivery Type</dt>
+        <dd class="col-sm-9 delivery-type">{{ delivery.service_type.title}}</dd>
+
+        <dt class="col-sm-3">Tracking ID</dt>
+        <dd class="col-sm-9 delivery-type">{{ delivery.tracking_id }}</dd>
+
+        <dt class="col-sm-3">Source Address</dt>
+        <dd class="col-sm-9 source-address">{{ delivery.from_address.get_one_line }}</dd>
+
+        <dt class="col-sm-3">{% if packages.count > 1 %} Packages {% else %} Package {% endif %}</dt>
+        <dd class="col-sm-9 packages">
+            {% if packages.count >= 1 %}
+                {% for package in packages.all %}
+                    <div class="chosen-package">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <span class="package-details-title">PACKAGE TYPE:&nbsp;</span>
+                                <span>{{ package.template.title }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="package-details-title">SIGNATURE REQUIRED:&nbsp;</span>
+                                <span>{% if package.signature %}Yes{% else %}No{% endif %}</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span class="package-details-title">TO ADDRESS:&nbsp;</span>
+                                <span>{{ package.to_address.get_one_line }}</span><br>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </dd>
+    </dl>
+</div>
+{% endblock %}
+

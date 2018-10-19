@@ -1,0 +1,37 @@
+{% extends "user-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+<link href="{% static 'css/user.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block footer-after %}
+<script type="text/javascript" src="{% static 'js/user.js' %}"></script>
+{% endblock %}
+
+
+{% block title %}Address Book{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <ul class="col-md-12 address">
+            <h2 class="address-title">address book</h2>
+        {% for address in address_book.all %}
+            <li class="row">
+                <span class="col-md-12"><b>Title:</b>&nbsp;{{ address.title | capfirst}}</span>
+                <span class="col-md-12" style="text-wrap:wrap;"><b>Address:</b>&nbsp;{{ address.address}}</span>
+                <span class="col-md-1"><a href="{% url 'user_edit_address' slug=address.id %}">Edit</a></span>
+                <span class="col-md-2"><a href="{% url 'user_delete_address' slug=address.id %}" class="confirm-delete">Delete</a></span>
+            </li>
+        {% endfor %}
+            <a href="{% url 'user_add_address' %}"><button class="btn btn-success">+ Add New Address</button></a>
+        </ul>
+    </div>
+</div>
+{% endblock%}
+

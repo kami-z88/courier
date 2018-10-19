@@ -1,0 +1,313 @@
+/* courier-home.html */
+.btn:hover {
+    cursor:pointer
+}
+
+.map-wrapper {
+    width:100%;
+    height:300px;
+    border:1px solid #b8b8b8;
+    border-radius:5px;
+    margin:0 auto 10px auto;
+
+}
+
+.expand-collapse {
+
+}
+
+#text-map {
+    margin-left:4px;
+}
+
+.separator{
+  border: 0;
+  clear:both;
+  display:block;
+  width: 98%;
+  background-color:#b8b8b8;
+  height: 1px;
+}
+
+
+/* courier/taskes */
+.top-row {
+    margin-top:0.8rem;
+}
+.radio-inline {
+    position:relative;
+    display: inline-block;
+    margin-right:0.1em 0.1em;
+    border:1px solid #939ebe;
+    padding:2px 8px 6px 8px;
+    border-radius:5px;
+    width:120px;
+    height:34px;
+    text-align:center;
+    background-color:#f1f8ff;
+    box-shadow: 3px 3px 3px #151a26;
+    margin-bottom: 3px;
+
+
+}
+.radio-inline > input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    visibility: hidden;
+}
+
+.radio-inline:hover {
+    background-color: #c4dcf5;
+}
+
+a {
+    color:#000000;
+
+}
+
+a:hover {
+     text-decoration: none;
+}
+
+.radio-inline.selected {
+    background-color: #0069D9;
+    color:#FFFFFF !important;
+    box-shadow: 1px 1px 1px #151a26;
+    margin-top:1px;
+}
+
+.fas {
+    vertical-align:middle;
+}
+
+.fa-crosshairs {
+    position:absolute;
+    color:#d93535;
+    float:left;
+    font-size:1.5em;
+    top:4px;
+    left:5px;
+}
+
+hr {
+    margin-top: 1.1rem;
+}
+
+.top-row div.col-md-3 > h5 {
+    margin-top: 6px;
+}
+
+.delivery-wrapper {
+    border:1px solid #b8b8b8;
+    border-radius:5px;
+    padding:1em;
+    background-color:#97D7EA;
+    margin:0 auto 10px auto;
+    width:97.5%;
+}
+
+.package-wrapper {
+    border:1px solid #b8b8b8;
+    margin:0 auto 5px auto;
+    border-radius:5px;
+    padding:1em;
+    background-color:#f1ffed;
+    width:98%;
+    box-shadow: 5px 5px 10px #888888;
+}
+
+h6 {
+    margin-left:1em;
+}
+
+
+.address {
+    margin-top:7px;
+}
+
+.btn {
+    font-size:0.8em;
+    box-shadow: 3px 3px 3px #151a26;
+}
+
+.fa-bullseye {
+    margin-right:3px;
+}
+
+.drop-target-task {
+    float:right;
+    margin:0;
+    background-repeat: no-repeat;
+    background-size:contain;
+}
+
+.drag-enter {
+    background-color:#f5d2d2;
+}
+
+#img-traget {
+    width:50px;
+    height:50px;
+    margin:auto;
+
+}
+
+.expand-collapse {
+    padding:3px;
+    margin-right:10px;
+    float:right;
+}
+
+.fa-expand, .fa-compress {
+    font-size:1.9em;
+}
+
+.hidden {
+    display:none;
+}
+
+.badge-pkg-count {
+    float:right;
+    background-color: transparent;
+    border: 1px solid #ffff;
+    margin-right:3px;
+    padding:0.3em;
+}
+
+.badge-pkg-count > .fa-cubes{
+    display:inline-block;
+    vertical-align:middle;
+    font-size:1.8em;
+    color:#fff;
+}
+
+span.col-sm-2 > span.badge {
+    margin-left:5px;
+}
+
+span.col-sm-2 > span.badge-default{
+    border:1px solid #fff;
+}
+
+.package-count {
+    width:20px;
+    height:20px;
+    vertical-align:middle;
+    text-align:center;
+    font-size:0.8em;
+}
+
+/*
+        .check-pickup {
+            position:relative;
+            padding:3px 4px 3px 4px;
+            border-radius:4px;
+            margin-right:1em;
+        }
+
+        .check-pickup:hover {
+            cursor:pointer;
+        }
+
+        .check-pickup.selected {
+            background-color:#dfd;
+        }
+
+        .fa-square {
+            position:absolute;
+            font-size:1.5em;
+            margin:auto;
+            top:2px;
+            color:#b8b8b8;
+        }
+
+        .fa-check-square {
+            position:absolute;
+            font-size:1.5em;
+            margin:auto;
+            top:2px;
+            color:green;
+        }
+*/
+
+
+.withdraw:hover {
+    background-color:#c1c1c1;
+}
+.label-pickup {
+	margin-left: 25px;
+}
+
+.reject-pickup , .do-undo-pickup {
+    padding:4px;
+    border-radius:4px;
+}
+
+
+.reject-pickup {
+    background-color:#ff9f9f;
+}
+
+.reject-pickup:hover {
+    background-color:#ffcdcd;
+}
+
+.do-undo-pickup:hover {
+    background-color:#fff;
+}
+
+.do-undo-pickup {
+        color:green;
+}
+
+.undo-reject-pickup {
+    padding:4px;
+    border-radius:4px;
+    background-color:#ceff9f;
+}
+
+.undo-reject-pickup:hover{
+    background-color:#7deb14;
+}
+
+.fa-ban {
+    color:red;
+    font-size:1.3em
+}
+
+.fa-upload {
+    font-size:1.3em
+}
+
+.rejection-text {
+    border:1px solid red;
+    border-radius:4px;
+    padding:0.5em;
+    margin-left:auto;
+    margin-right:auto;
+    color:red !important;
+    text-align:center;
+    float:none;
+}
+
+.info-wrapper {
+    padding:2px;
+    margin-top:10px;
+    text-align:center;
+
+}
+
+.place-holder {
+    width:71px;
+    height:28px;
+    text-align:center;
+    padding:5px;
+    color:red;
+    vertical-align:middle;
+}
+
+span.place-holder > .text {
+    color:green;
+}
+

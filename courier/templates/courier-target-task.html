@@ -1,0 +1,214 @@
+{% extends "courier-tasks.html" %}
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+
+{% block title %}Picked Up{% endblock %}
+
+{% block modals %}
+<!-- Modal -->
+<div class="modal fade" id="withdrawTargetTask" tabindex="-1" role="dialog" aria-labelledby="withdrawTargetTaskTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <span>Do you want withdraw this item from target task?</span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="withdraw-target" type="button" class="btn btn-primary" data-dismiss="modal" value="">Withdraw</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal: Reject package pickup  -->
+<div class="modal fade" id="rejectPackageMolal" tabindex="-1" role="dialog" aria-labelledby="rejectPakageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectPakageModalLabel">Why are you rejecting this pickup?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="col-form-label">Recently used comments:</label>
+                        <select class="form-control">
+                            <option>Default select</option>
+                            <option>Default select</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pickup-rejection-text" class="col-form-label">Reason:</label>
+                        <textarea class="form-control comment-box" id="pickup-rejection-text" maxlength="100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-reject-pickup" class="btn btn-primary btn-do" data-dismiss="modal" value="" disabled>Reject Pickup</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
+<!-- Modal: Carry back item  -->
+<div class="modal fade" id="carryBackMolal" tabindex="-1" role="dialog" aria-labelledby="carryBackModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="carryBackModalLabel">Why are you carrying back this package?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="pickup-rejection-text" class="col-form-label">Reason:</label>
+                        <textarea class="form-control comment-box" id="carry-back-text" maxlength="100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-carry-back" class="btn btn-primary btn-do" data-dismiss="modal" value="" disabled>OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
+<!-- Modal: Handover package  -->
+<div class="modal fade" id="handoverMolal" tabindex="-1" role="dialog" aria-labelledby="handoverModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="handoverModalLabel">Receiver</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="receiver-name">Name:</label>
+                    <input type="text" class="form-control comment-box" id="receiver-name" placeholder="Name">
+                </div>
+                <div class="form-group">
+                    <label for="receiver-phone">Phone:</label>
+                    <input type="text" class="form-control" id="receiver-phone" placeholder="Phone (optional)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-handover" class="btn btn-primary btn-do" data-dismiss="modal" value="" >OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
+{% endblock %}
+
+{% block second_row %}
+    <div  class="row map-wrapper hideable hidden" >
+        <span  class="col-md-12 "></span>
+    </div>
+    <div class="row">
+        {% for delivery in target_pickup_deliveries %}
+            <!-- .................... Section_start: target task is pickup task ............ -->
+            {% if delivery.status == "ap" %}
+                <div class="row delivery-wrapper" draggable="true" data-dlvry-id="{{ delivery.id }}" ondragstart="drag_task(event)">
+                    <span class="col-sm-3">
+                        <button class="btn btn-default withdraw" data-toggle="modal" data-target="#withdrawTargetTask" value="delivery:{{ delivery.id }}"><i class="fas fa-undo"></i></button>
+                        {% if package_statistics|get_item:delivery.id|get_item:"unhandled" == 0 %}
+                        <button class="btn btn-success pickup-done" value="{{ delivery.id }}">Done with this request</button>
+                        {% endif %}
+                    </span>
+                    <span class="col-sm-3"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title }}</span>
+                    <span class="col-sm-4"><b>Request Time:</b>&nbsp;{{ delivery.request_time_created }}</span>
+                    <span class="col-sm-2"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
+                    <span class="col-sm-12 address"><b>From Address:</b>&nbsp;{{ delivery.from_address }}</span>
+                        <hr class="separator"/>
+                    <span class="col-sm-2">Total Packages:<span class="badge badge-info">{{ packages.count }}</span></span>
+                        <span class="col-sm-2">Unhandled:<span class="badge badge-default">{{ package_statistics|get_item:delivery.id|get_item:"unhandled"}} </span></span>
+                        <span class="col-sm-2">Picked Up:<span class="badge badge-success">{{ package_statistics|get_item:delivery.id|get_item:"picked"}}</span></span>
+                        <span class="col-sm-2">Rejected:<span class="badge badge-danger">{{ package_statistics|get_item:delivery.id|get_item:"rejected"}}</span></span>
+                        <span class="col-sm-2"><!--Total service price--></span>
+                        <span class="col-sm-2"><!--payment info--></span>
+                        {% for package in packages.all %}
+                        <div class="row package-wrapper">
+                            <span class="col-sm-4">
+                                {% if package.status == "rc" %}
+                                <span class="place-holder">REJECTED</span>
+                                <button class="btn undo-reject-pickup" data-toggle="modal" data-target="#undoRejectPackageMolal" value='{"commentId":{{ package.comments.all.0.id }}, "packageId":{{ package.id }}}'>
+                                    <i  class="fas fa-undo" ></i>&nbsp;Reject
+                                </button>
+                                {% elif package.status == "pc" %}
+                                <button class="btn do-undo-pickup" onclick="do_undo_pickup({{ package.id }},'undo')"><i class="fas fa-undo"></i>&nbsp;Pick up</button>
+                                <span class="place-holder"><a class="text">PICKED UP</a></span>
+                                {% else %}
+                                <button class="btn do-undo-pickup" onclick="do_undo_pickup({{ package.id }},'do')"><i class="fas fa-upload"></i>&nbsp;Pick up</button>
+                                <button class="btn reject-pickup" data-toggle="modal" data-target="#rejectPackageMolal" value="{{ package.id }}">
+                                    <i  class="fas fa-ban" ></i>&nbsp;Reject
+                                </button>
+                                {% endif %}
+                            </span>
+                            <span class="col-sm-4"><b>Package Type:</b>&nbsp;{{ package.template }}</span>
+                            <span class="col-sm-4"><b>Sig. Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
+                            <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
+                            {% if package.status == "rc" %}
+                                <div class="col-sm-12 info-wrapper">
+                                    <span class="rejection-text">
+                                    {% for comment in package.comments.all%}
+                                        {% if comment.for_reject %}
+                                            {{ comment.message }}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                </div>
+            {% endif %}
+            <!-- .................... Section_end: target task is pickup task ............ -->
+            <!-- .................... Section_start: target task is handover task ............ -->
+            {%  for package in delivery.package_set.all %}
+                {% if package.status == "ah" %}
+                    <div class="row package-wrapper" draggable="true" data-pckg-id="{{ package.id }}" ondragstart="drag_task(event)">
+                        <span class="col-sm-4">
+                            <button class="btn btn-default withdraw" data-toggle="modal" data-target="#withdrawTargetTask" value="package:{{ package.id }}"><i class="fas fa-undo"></i></button>
+                            <button class="btn btn-info action" data-toggle="modal" data-target="#carryBackMolal" onclick='set_modal_btn_value("#do-carry-back" ,{{ package.id }})'>Carry Back</button>
+                            <button class="btn btn-success handover" data-toggle="modal" data-target="#handoverMolal" data-sig="{{package.signature}}" onclick='set_modal_btn_value("#do-handover" ,{{ package.id }})' >Handover</button>
+                            <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
+                        </span>
+                        <span class="col-sm-4"><b>Package Type:</b>&nbsp;{{ package.template }}</span>
+                        <span class="col-sm-4"><b>Signature Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
+                        <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
+                        <span class="col-sm-4"><b>Request Time:</b>&nbsp;{{ delivery.request_time_created }}</span>
+                        <span class="col-sm-4"><b>Pickup Time:</b>&nbsp;{{ package.pickup_time }}</span>
+                        <span class="col-sm-4"><b>Remaining Time:</b>&nbsp;.......</span>
+                        <span class="col-sm-6"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title }}</span>
+                        <span class="col-sm-6"><b>PackageID:</b>&nbsp;{{ package.id }}</span>
+                        <div class="hideable hidden">
+                            <hr class="separator"/>
+                            <div class="row delivery-wrapper">
+                                <span class="col-sm-2 address"><b>From Address:</b></span>
+                                <span class="col-sm-10 address">{{ delivery.from_address }}</span>
+                                <span class="col-sm-6 "><b>Requester:</b>&nbsp;{{ delivery.user }}</span>
+                                <span class="col-sm-6"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <!-- .................... Section_ends: target task is handover task ............ -->
+        {% endfor %}
+        {% if target_items_count == 0 %}
+         <div class="row delivery-wrapper">
+            <span style="margin:auto;">No target task</span>
+         </div>
+        {% endif %}
+    </div>
+{% endblock %}

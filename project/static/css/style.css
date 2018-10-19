@@ -1,0 +1,64 @@
+/*------------------------------------------------------------------
+HTML Tags
+------------------------------------------------------------------*/
+body {
+	background-color: #efefef;
+	color: #4c5667;
+}
+h1, h2, h3, h4, h5{
+	color: #333;
+	font-weight: 700;
+	letter-spacing: 1px;
+	margin-bottom: 0;
+	text-transform: uppercase;
+}
+
+
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  line-height: 60px; /* Vertically center the text there */
+  background-color: #f5f5f5;
+}
+
+
+.nav-avatar{
+    padding: 0 16px;
+}
+
+.navbar-brand-small {
+    display: none;
+}
+
+.center{
+    margin: 0 auto;
+}
+
+
+@media (max-width: 360px) {
+    .navbar-brand-small {
+        display: block;
+    }
+    .navbar-brand {
+        display: none;
+    }
+}
+
+button:disabled:hover {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

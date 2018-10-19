@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load tags %}
+{% load static %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/user.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+               {% for target_task in target_tasks %}
+                   {% for package in target_task.packages.all %}
+                        {{ package.status }}
+                    {% endfor %}
+                {% endfor %}
+{% endblock %}

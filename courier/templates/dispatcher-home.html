@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/dispatcher.css' %}" rel="stylesheet">
+<script>
+    var not_reviewed = {{ deliveries_not_reviewed }};
+    var waiting_for_courier = {{ waiting_for_courier }};
+    var on_road_to_pick = {{ on_road_to_pick }};
+    var on_road_to_deliver = {{ on_road_to_deliver }};
+    var delivered = {{ delivered_count }};
+
+    var request_chart_data = {{ request_chart_data|safe }};
+    var request_chart_lables = [];
+    var request_chart_variables = [];
+    for (var key in request_chart_data) {
+        request_chart_lables.push(key);
+        request_chart_variables.push(request_chart_data[key]);
+    }
+
+</script>
+{% endblock %}
+{% block footer-after %}
+<script type="text/javascript" src="{% static 'js/Chart.bundle.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/dispatcher.js' %}"></script>
+{% endblock %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{{ deliveries_per_hour }}
+<div class="container dashboard-container">
+    <div class="row">
+        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
+            <div class="card card-statistics">
+                <a href="" class="card-body">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="highlight-icon bg-light mr-3">
+                            <i class="dashboard-orders text-success fas fa-boxes"></i>
+                        </div>
+                        <div class="wrapper">
+                            <p class="card-text mb-0">Orders</p>
+                            <div class="fluid-container">
+                                <h3 class="card-title mb-0">{{ deliveries_count }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
+            <div class="card card-statistics">
+                <a href="" class="card-body">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="highlight-icon bg-light mr-3">
+                            <i class="dashboard-not-reviewed text-primary fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="wrapper">
+                            <p class="card-text mb-0">Not Reviewed</p>
+                            <div class="fluid-container">
+                                <h3 class="card-title mb-0">{{ deliveries_not_reviewed }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
+            <div class="card card-statistics">
+                <a href="" class="card-body">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="highlight-icon bg-light mr-3">
+                            <i class="dashboard-on-the-way text-primary fas fa-truck-moving"></i>
+                        </div>
+                        <div class="wrapper">
+                            <p class="card-text mb-0">On The Way</p>
+                            <div class="fluid-container">
+                                <h3 class="card-title mb-0">{{ total_on_the_way }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
+            <div class="card card-statistics">
+                <a href="" class="card-body">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="highlight-icon bg-light mr-3">
+                            <i class="dashboard-delivered text-danger fas fa-truck-loading"></i>
+                        </div>
+                        <div class="wrapper">
+                            <p class="card-text mb-0">Delivered</p>
+                            <div class="fluid-container">
+                                <h3 class="card-title mb-0">{{ delivered_count }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <canvas id="dashboard-delivery-status"></canvas>
+        </div>
+        <div class="col-6">
+            <canvas id="dashboard-delivery-requests"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

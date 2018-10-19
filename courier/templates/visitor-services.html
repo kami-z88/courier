@@ -1,0 +1,35 @@
+{% extends "visitor-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+
+{% block header %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Services{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="service-cards-wrapper" >
+            <h3>the services we offer</h3>
+            {% for service in services %}
+            <div class="card" style="width: 18rem;">
+                    <img class="card-img-top" src="{% static 'images/handover.jpg' %}" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">{{ service.title }}</h5>
+                    <p class="card-text">{{ service.description | capfirst }}</p>
+                    <a href="#" class="btn btn-primary">Order Service</a>
+                </div>
+            </div>
+            {%  endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% for avail in service.available_time.all %}
+{{ avail.from_hour }}
+{% endfor %}

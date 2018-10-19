@@ -1,0 +1,150 @@
+{% extends "dispatcher-home.html" %}
+{% load static %}
+{% load tags %}
+{% load i18n %}
+{% block header %}
+<link href="{% static 'css/dispatcher.css' %}" rel="stylesheet">
+{% endblock %}
+{% block title %}Requests{% endblock %}
+{% block footer %}<script src="{% static 'js/dispatcher.js' %}"></script> {% endblock %}
+
+{% block content %}
+
+<audio id="alertAudio">
+  <source src="{% static 'sound/new-delivery-alert.mp3' %}" type="audio/mpeg">
+</audio>
+
+<!-- Modal: Select courier -->
+<div class="modal fade" id="selectCourierModal" tabindex="-1" role="dialog" aria-labelledby="selectCourierModalLabel" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="selectCourierModalLabel">Select a courier to dispatch</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div id="choose-courier-modal" class="modal-body">
+               {% for courier_id,value in couriers.items %}
+                <div class="row each-courier">
+                     <div class="col-sm-3 content-center"><img src="{{ value.userImgPath }}" class="img-courier-select" alt="..."></div>
+                     <div class="col-sm-3 content-center"><span class="courierid" data-cid="{{ courier_id }}">{{ value.userName | upper }}</span></div>
+                     <div class="col-sm-6 content-center">on hand delivery info</div>
+                </div>
+               <hr  class="separator"/>
+               {% endfor %}
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button"  id="do-dispatch" data-dismiss="modal" class="btn btn-success" data-delivery-id="" data-courier-id="">DISPATCH</button>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- Modal End -->
+<!-- Modal: Reject delivery request  -->
+<div class="modal fade" id="rejectDeliveryModal" tabindex="-1" role="dialog" aria-labelledby="RejectDeliveryModalLabel" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="RejectDeliveryModalLabel">Why are you rejecting this request?</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div>
+             <div class="reject-reasons">
+                 <p>Leave a comment:</p>
+                 <textarea id="delivery-rejection-text"  maxlength="255" style="width:80%"></textarea>
+             </div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button"  id="btn-do-reject" data-dismiss="modal" class="btn btn-danger" data-delivery-id="">REJECT</button>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- Modal End -->
+<div class="container">
+   <div class="row top-row">
+      <div class="col-sm-6">
+         <h3>RECENT DELIVERY REQUESTS</h3>
+      </div>
+      <div class="col-sm-3">
+         <label class="switch auto-dispatch">
+         <input type="checkbox" class="auto-dispatch">
+         <span class="slider"></span>
+         </label>
+         AUTO DISPATCH
+      </div>
+      <div class="col-sm-3 to-courier-combox">
+         <div class="ui-widget">
+            <label>To Courier: </label>
+            <select id="combobox" disabled >
+               <option value="-1">Select Courier ...</option>
+               {% for courier_id, value in couriers.items %}
+               <option value="{{ courier_id }}">{{ value.userName | title }}</option>
+               {% endfor %}
+            </select>
+         </div>
+      </div>
+      {% for delivery in deliveries_to_handle %}
+      <div class="row requests">
+         <span class="col-sm-3"><b class="tasks_title">Requester:</b>{{ delivery.user | title }} </span>
+         <span class="col-sm-3"><b class="tasks_title">Service Type:</b>{{ delivery.service_type | title }}</span>
+         <span class="col-sm-3"><b class="tasks_title">Number:</b>{{ delivery.packages.count }}</span>
+         <span class="col-sm-3"><b class="tasks_title">Delivery ID:</b>{{ delivery.id }}</span>
+         <span class="col-sm-12"><b class="tasks_title">From Address:</b>{{ delivery.from_address }} </span>
+         <hr class="separator" />
+         {%  for package in delivery.packages.all %}
+         <span class="col-sm-9"><b class="tasks_title">To Address:</b>{{ package.to_address }}</span>
+         <span class="col-sm-3"><b class="tasks_title">Packge:</b>{{ package.template }}</span>
+         {% endfor %}
+         <span class="col-sm-6"><b class="tasks_title">Request Date & Time:</b>{{ delivery.request_time_created }}</span>
+         <span class="col-sm-6">
+            <button   value="{{ delivery.id }}" class="btn btn-primary btn-select-courier" data-toggle="modal" data-target="#selectCourierModal">SELECT COURIER</button>
+            <button   value="{{ delivery.id }}" class="btn btn-danger  btn-reject-delivery-request" data-toggle="modal" data-target="#rejectDeliveryModal"><span>RIJECT DELIVERY</span></button>
+         </span>
+      </div>
+      {% endfor %}
+      {% if not deliveries_to_handle %}
+         <div class="row requests">
+            <span style="margin:auto;">No new delivery request yet!</span>
+         </div>
+      {% endif %}
+   </div>
+   <hr/>
+   <h3>Reviewed Deliveries Within Last 24 Hours</h3>
+   <div class="row">
+      <div class="table-responsive col-md-12">
+         <table class="table table-striped">
+            <thead>
+               <tr>
+                  <th>#</th>
+                  <th>Requester</th>
+                  <th>Service Type</th>
+                  <th>Package(s)</th>
+                  <th>Courier</th>
+                  <th>Status</th>
+                  <th>Details</th>
+               </tr>
+            </thead>
+            <tbody>
+               {% for reviewed_delivery in reviewed_deliveries %}
+               <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ reviewed_delivery.user.username }}</td>
+                  <td>{{ reviewed_delivery.service_type.title }}</td>
+                  <td>{{ reviewed_delivery.packages.count }}</td>
+                  <td>{{ reviewed_delivery.courier.user.username }}</td>
+                  <td>{{ reviewed_delivery.get_status_display}}</td>
+                  <td><a href="#">details</a> </td>
+               </tr>
+               {% endfor %}
+            </tbody>
+         </table>
+      </div>
+   </div>
+</div>
+{% endblock %}
