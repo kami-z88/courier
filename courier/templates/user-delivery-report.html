@@ -4,53 +4,133 @@
 {% load i18n %}
 
 {% block header %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
 <link href="{% static 'css/user.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block footer-after %}
+<script type="text/javascript" src="{% static 'js/user.js' %}"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0y6MWs8gQnQeQkOTMcM7FWB33oxCHje8&callback=initMap"></script>
 {% endblock %}
 
 {% block title %}Delivery Report{% endblock %}
 
 {% block content %}
-<div class="delivery-report">
-    <dl class="row">
-        <dt class="col-sm-3">Delivery Type</dt>
-        <dd class="col-sm-9 delivery-type">{{ delivery.service_type.title}}</dd>
+<div class="container ">
+    <div class="row delivery-report">
+        <dl class="row">
+            <dt class="col-sm-3">Delivery Type</dt>
+            <dd class="col-sm-9 delivery-type">{{ delivery.service_type.title}}</dd>
 
-        <dt class="col-sm-3">Tracking ID</dt>
-        <dd class="col-sm-9 delivery-type">{{ delivery.tracking_id }}</dd>
+            <dt class="col-sm-3">Pickup Address</dt>
+            <dd class="col-sm-9 source-address">{{ delivery.from_address.get_one_line }}</dd>
 
-        <dt class="col-sm-3">Source Address</dt>
-        <dd class="col-sm-9 source-address">{{ delivery.from_address.get_one_line }}</dd>
-
-        <dt class="col-sm-3">{% if packages.count > 1 %} Packages {% else %} Package {% endif %}</dt>
-        <dd class="col-sm-9 packages">
-            {% if packages.count >= 1 %}
-                {% for package in packages.all %}
-                    <div class="chosen-package">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <span class="package-details-title">PACKAGE TYPE:&nbsp;</span>
-                                <span>{{ package.template.title }}</span>
+            <dt class="col-sm-3">{% if packages.count > 1 %} Packages {% else %} Package {% endif %}</dt>
+            <dd class="col-sm-9 packages">
+                {% if packages.count >= 1 %}
+                    {% for package in packages.all %}
+                        <div class="chosen-package">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <span class="package-details-title">Tracking ID:&nbsp;</span>
+                                    <span>{{ package.tracking_id }}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="package-details-title">Status:&nbsp;</span>
+                                    <span>{{ package.get_status_display }}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span>
+                                        <button class="btn expand-collapse btn-primary" ><span class="btn-text">More Details</span><i class="fas fa-expand"></i></button>
+                                    </span>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <span class="package-details-title">SIGNATURE REQUIRED:&nbsp;</span>
-                                <span>{% if package.signature %}Yes{% else %}No{% endif %}</span>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <span class="package-details-title">To Address:&nbsp;</span>
+                                    <span>{{ package.to_address.get_one_line }}</span><br>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="package-details-title">Phone:&nbsp;</span>
+                                    <span>{{ package.to_address.phone }}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="package-details-title">Fax:&nbsp;</span>
+                                    <span>{{ package.to_address.fax }}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="package-details-title">E-mail:&nbsp;</span>
+                                    <span>{{ package.to_address.email }}</span>
+                                </div>
+                            </div>
+                            <hr class="hideable hidden">
+                            <div class=" row more-details hideable hidden">
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Share Tracking ID via SMS:</span>
+                                    <span>{% if package.tracking_code_sharing_sms %}Yes{% else %}No{% endif %}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Share Tracking ID via E-mail:</span>
+                                    <span>{% if package.tracking_code_sharing_email %}Yes{% else %}No{% endif %}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Signature Required:</span>
+                                    <span>{% if package.signature %}Yes{% else %}No{% endif %}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Package Type:</span>
+                                    <span>{{ package.template}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Signer Name:</span>
+                                    <span>{{ package.signer_name}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Signer Phone:</span>
+                                    <span>{{ package.signer_phone}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Pickup time:</span>
+                                    <span>{{ package.pickup_time}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Handover Time:</span>
+                                    <span>{{ package.handover_time}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Weight:</span>
+                                    <span>{{ package.weight}} &nbsp; {{package.get_weight_metrics_display}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Width:</span>
+                                    <span>{{ package.width}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Length:</span>
+                                    <span>{{ package.length}}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="package-details-title">Height:</span>
+                                    <span>{{ package.height}}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <span class="package-details-title">Description: </span>
+                                    <span>{{ package.description }}</span>
+                                </div>
+                                <div class="col-md-12">
+                                    <span class="package-details-title">Comments: </span>
+                                    {% for comment in package.comments.all %}
+                                    <span>{{ comment.message }}</span>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <span class="package-details-title">TO ADDRESS:&nbsp;</span>
-                                <span>{{ package.to_address.get_one_line }}</span><br>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </dd>
-    </dl>
+                    {% endfor %}
+                {% endif %}
+            </dd>
+        </dl>
+    </div>
 </div>
 {% endblock %}
 

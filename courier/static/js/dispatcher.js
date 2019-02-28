@@ -103,20 +103,46 @@ $(document).ready(function (){
 
 
 /*
-    Auto dispatch combobox for selecting courier
+    Auto dispatch auto-dispatch-select for selecting courier
 */
 
 $(".auto-dispatch > input[type='checkbox']").on('click',function(){
 
     if($("input[type='checkbox']").is(":checked")){
-        $("#combobox").prop("disabled",false);
+        $("#auto-dispatch-select").prop("disabled",false);
     }
     else {
-        $("#combobox > option[value='-1']").prop("selected",true);
-        $("#combobox").prop("disabled",true);
+        $("#auto-dispatch-select > option[value='-1']").prop("selected",true);
+        $("#auto-dispatch-select").prop("disabled",true);
     }
 
 });
+
+$("#auto-dispatch-select").change(function(){
+    var courier_id = $(this).val();
+    var auto_dispatch_on = $("#auto-dispatch-check").is(':checked');
+    if(courier_id > 0 && auto_dispatch_on){
+        $.ajax({
+            url:'/dispatcher/ajax/set-auto-dispatch-on/',
+            type:'Get',
+            data: {
+                'courier-id': courier_id
+            },
+            success: function(){
+                alert("ok");
+            }
+        });
+    }
+})
+
+$("#auto-dispatch-check").on('click', function(){
+    if(!$(this).is(':checked')) {
+        $.ajax({
+            url:'/dispatcher/ajax/set-auto-dispatch-off/',
+            type: 'Get',
+        });
+    }
+})
 
 $(".btn-select-courier").click(function(){
     delivery_id = $(this).val();

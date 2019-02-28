@@ -160,7 +160,7 @@ class EditAccountForm(forms.ModelForm):
 		user = super(EditAccountForm, self).save(commit=False)
 		user.username = self.cleaned_data['username']
 		user.email = self.cleaned_data['email']
-		if self.cleaned_data['password'] and len(self.cleaned_data['password']):
+		if self.cleaned_data['password'] and len(self.cleaned_data['password'])>8:
 			user.set_password(self.cleaned_data['password'])
 		if commit:
 			user.save()

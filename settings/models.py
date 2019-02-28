@@ -20,3 +20,15 @@ class SiteSettings(models.Model):
 	brand_name = models.CharField(_('Site header name'), max_length=128, blank=True, default='Courier App')
 	tracking_id_prefix = models.CharField(_('Prefix for Tracking ID'), max_length=16, blank=True, null=True)
 	tracking_id_suffix = models.CharField(_('Suffix for Tracking ID'), max_length=16, blank=True, null=True)
+
+
+class ZoneSystem(models.Model):
+	ZONE_DIVISION = (
+		('p', 'Postal Code'),
+		('z', 'Zip Code'),
+		('zp', 'Zip/Postal Code')
+	)
+	name = models.CharField(_('Zone division'), max_length=2, default='p', choices=ZONE_DIVISION)
+
+	def __str__(self):
+		return self.name

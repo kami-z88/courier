@@ -62,3 +62,11 @@
     padding: 15px;
     margin: 2% auto 0 auto;
 }
+
+.large-logo {
+    width:100%;
+}
+
+.large-logo:hover {
+    opacity:0.8;
+}

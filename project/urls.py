@@ -26,12 +26,13 @@ from courier.views import home_page, user_deposit, user_delivery, user_payments,
 	visitor_services, visitor_about, visitor_contact, visitor_portfolio, visitor_tracking,\
 	dispatcher_archive, dispatcher_payments, dispatcher_tasks, dispatcher_users,\
 	courier_delivered, courier_tasks,courier_tasks_smart_sort, courier_tasks_custom_sort, courier_tasks_should_pickup, \
-	courier_tasks_pickedup, courier_target_task, test_page, get_user_address,submit_user_delivery,\
+	courier_tasks_pickedup, courier_target_task, test_page, submit_user_delivery,\
 	delivery_item, set_delivery_courier,set_delivery_rejection_reason,check_db_for_dispatcher, \
 	put_task_on_target, check_db_for_courier, withdraw_target_task, courier_tasks_rejected_pickup, \
 	reject_package_pickup, undo_reject_package_pickup, do_undo_pickup, done_width_pickup, carry_back_package, \
-	handover_package, visitor_tracking_ajax, user_address_book, user_add_address, user_edit_address, \
-	user_delete_address
+	handover_package, visitor_tracking_ajax, user_address_book, \
+	get_provinces, get_cities, add_update_user_address, get_user_address, delete_user_address, set_auto_dispatch_on, \
+	set_auto_dispatch_off, unset_new_task_for_courier
 
 from account.api import UserViewSet, ProfileViewSet, GroupViewSet
 from courier.api import CourierViewSet, AddressViewSet, DepositViewSet, DispatcherViewSet,\
@@ -76,15 +77,16 @@ urlpatterns = [
 	# User Pages
 	url(r'^user/tracking', user_tracking, name="user_tracking"),
 	url(r'^user/delivery$', user_delivery, name="user_delivery"),
-	url(r'^user/address-book/add$', user_add_address, name="user_add_address"),
-	url(r'^user/address-book/edit/(?P<slug>[-\w]+)$', user_edit_address, name="user_edit_address"),
-	url(r'^user/address-book/delete/(?P<slug>[-\w]+)$', user_delete_address, name="user_delete_address"),
 	url(r'^user/address-book$', user_address_book, name="user_address_book"),
 	url(r'^user/delivery-report/(?P<slug>[-\w]+)$', delivery_item, name="delivery_report"),
 	url(r'^history/deposit$', user_deposit, name="user_deposit"),
 	url(r'^history/payments', user_payments, name="user_payments"),
-	url(r'^user/ajax/get-address', get_user_address),
+	url(r'^user/ajax/add-update-address', add_update_user_address),
 	url(r'^user/ajax/user-delivery', submit_user_delivery),
+	url(r'^user/ajax/get-provinces', get_provinces),
+	url(r'^user/ajax/get-cities', get_cities),
+	url(r'^user/ajax/get-user-address', get_user_address),
+	url(r'^user/ajax/delete-user-address', delete_user_address),
 
 	# Visitor pages
 	url(r'^services$', visitor_services, name="visitor_services"),
@@ -101,6 +103,8 @@ urlpatterns = [
 	url(r'^dispatcher/ajax/set-courier', set_delivery_courier),
 	url(r'^dispatcher/ajax/set-delivery-rejection-reason', set_delivery_rejection_reason),
 	url(r'^dispatcher/ajax/check-db-for-dispatcher', check_db_for_dispatcher),
+	url(r'^dispatcher/ajax/set-auto-dispatch-on', set_auto_dispatch_on),
+	url(r'^dispatcher/ajax/set-auto-dispatch-off', set_auto_dispatch_off),
 
 	# Courier pages
 	url(r'^courier/tasks/smart-sort', courier_tasks_smart_sort, name="smart_sort"),
@@ -113,6 +117,7 @@ urlpatterns = [
 	url(r'^courier/delivered', courier_delivered, name="courier_delivered"),
 	url(r'^courier/ajax/put-task-on-target', put_task_on_target, name="put_on_target"),
 	url(r'^courier/ajax/check-db-for-courier', check_db_for_courier),
+	url(r'^courier/ajax/unset-new-task-for-courier', unset_new_task_for_courier),
 	url(r'^courier/ajax/withdraw-target-task', withdraw_target_task),
 	url(r'^courier/ajax/reject-package-pickup', reject_package_pickup),
 	url(r'^courier/ajax/undo-reject-package-pickup', undo_reject_package_pickup),

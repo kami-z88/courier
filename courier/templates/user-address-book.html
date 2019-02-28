@@ -16,20 +16,164 @@
 {% block title %}Address Book{% endblock %}
 
 {% block content %}
-
+<!-- Modal: Confirm address deletion-->
+<div class="modal fade" id="addressDeleteModal" tabindex="-1" role="dialog" aria-labelledby="addressDeleteModalTitle" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title address-form-title">Delete address</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+             <span>Do you want to delete address with title: <b id="address-to-delete-title"></b>?</span>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button id="do-delete-address" type="button" class="btn btn-danger" data-dismiss="modal" value="">Delete</button>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- Modal: Add new address  -->
+<div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="carryBackModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title address-form-title">Add new address</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body address-form">
+                <input type="hidden" name="csrf-token" value="">
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-title">Title<span class="star">*</span></label>
+                    <div class="col-md-8">
+                        <input id="address-title" name="fax" type="text" placeholder="Title, Name or Description" class="form-control input-md">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-country">Country<span class="star">*</span></label>
+                    <div class="col-md-8">
+                        <select  class="custom-select col-md-6" id="address-country">
+                            {% if countries.count > 1 %}
+                            <option selected value="0">Select country ...</option>
+                            {% endif %}
+                            {% for country in countries %}
+                            <option value="{{ country.id }}">{{ country.name | title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-province">Province<span class="star">*</span></label>
+                    <div class="col-md-8">
+                        <select class="custom-select col-md-6" id="address-province">
+                            {% if provinces.count > 1 or provinces == ""%}
+                            <option selected value="0">Select province ...</option>
+                            {% endif %}
+                            {% for province in provinces %}
+                            <option value="{{ province.id }}">{{ province.name | title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-city">City/Town<span class="star">*</span></label>
+                    <div class="col-md-8">
+                        <select class="custom-select col-md-6" id="address-city">
+                            {% if cities.count > 1 or cities == "" %}
+                            <option selected value="0">Select city ...</option>
+                            {% endif %}
+                            {% for city in cities %}
+                            <option value="{{ city.id }}">{{ city.name | title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-address1">Address Line1<span class="star">*</span></label>
+                    <div class="col-md-8">
+                        <textarea id="address-address1" name="address1" type="text" placeholder="Street address, P.O. box, company name, c/o" class="form-control input-md"></textarea>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-address2">Address Line2</label>
+                    <div class="col-md-8">
+                        <textarea id="address-address2" name="address2" type="text" placeholder="Apartment, suite , unit, building, floor, etc." class="form-control input-md"></textarea>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-zip">{{zone_division_name}}<span class="star">*</span></label>
+                    <div class="col-md-8">
+                        <input id="address-zip" name="zip" type="text" placeholder="{{zone_division_name}}" class="form-control input-md" >
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-phone">Phone</label>
+                    <div class="col-md-8">
+                        <input id="address-phone" name="phone" type="text" placeholder="Preferably Cell Phone" class="form-control input-md">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-fax">Fax</label>
+                    <div class="col-md-8">
+                        <input id="address-fax" name="fax" type="text" placeholder="fax Number" class="form-control input-md">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-4 control-label" for="address-email">E-Mail</label>
+                    <div class="col-md-8">
+                        <input id="address-email" name="fax" type="email" placeholder="E-Mail" class="form-control input-md">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-add-update-address" class="btn btn-primary btn-do" data-action1="0" value="">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
 <div class="container">
     <div class="row">
         <ul class="col-md-12 address">
             <h2 class="address-title">address book</h2>
-        {% for address in address_book.all %}
+        {% for address_book in address_book.all %}
             <li class="row">
-                <span class="col-md-12"><b>Title:</b>&nbsp;{{ address.title | capfirst}}</span>
-                <span class="col-md-12" style="text-wrap:wrap;"><b>Address:</b>&nbsp;{{ address.address}}</span>
-                <span class="col-md-1"><a href="{% url 'user_edit_address' slug=address.id %}">Edit</a></span>
-                <span class="col-md-2"><a href="{% url 'user_delete_address' slug=address.id %}" class="confirm-delete">Delete</a></span>
+                <span class="col-md-12"><b>Title:</b>&nbsp;<span id="title{{ address_book.id }}">{{ address_book.title | capfirst}}</span></span>
+                <span class="col-md-12">
+                    <span class="address-book-title">Address:&nbsp;</span>&nbsp;{% if address_book.address.address2 %}{{ address_book.address.address2}},&nbsp;{% endif %}
+                    {{ address_book.address.address1 }},&nbsp;{{ address_book.address.city | title }},&nbsp;{{ address_book.address.get_province | title }},&nbsp;{{ address_book.address.get_country | title }}
+                </span>
+                <span class="col-md-3">
+                    <span class="address-book-title">{{ zone_division_name }}:&nbsp;</span>{{ address_book.address.zip }}
+                </span>
+                {% if address_book.address.phone %}
+                <span class="col-md-3">
+                    <span class="address-book-title">Phone:&nbsp;</span>{{ address_book.address.phone }}
+                </span>
+                {% endif %}
+                {% if address_book.address.fax %}
+                <span class="col-md-3">
+                    <span class="address-book-title">Fax:&nbsp;</span>{{ address_book.address.fax }}
+                </span>
+                {% endif %}
+                {% if address_book.address.email %}
+                <span class="col-md-3">
+                    <span class="address-book-title">Email:&nbsp;</span>{{ address_book.address.email }}
+                </span>
+                {% endif %}
+                <span class="col-md-12">
+                    <span class="col-md-1"><a href="#"  class="edit-address" data-toggle="1modal" data-addressbookid ="{{ address_book.id }}" data-target="#addressModal">Edit</a></span>
+                    <span class="col-md-2"><a href="#" class="confirm-delete"data-addressbookid="{{ address_book.id }}">Delete</a></span>
+                </span>
             </li>
         {% endfor %}
-            <a href="{% url 'user_add_address' %}"><button class="btn btn-success">+ Add New Address</button></a>
+            <button id="open-address-modal" class="btn btn-success" data-toggle="modal" data-target="#addressModal">+ Add New Address</button>
         </ul>
     </div>
 </div>

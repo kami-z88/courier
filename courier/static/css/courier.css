@@ -12,10 +12,6 @@
 
 }
 
-.expand-collapse {
-
-}
-
 #text-map {
     margin-left:4px;
 }
@@ -311,3 +307,35 @@ span.place-holder > .text {
     color:green;
 }
 
+.wrapper {
+    background-color:transparent;
+    margin:auto;
+    text-align:center;
+    margin-top:10%;
+}
+
+.middle-menu {
+   border: 1px solid #000000;
+   background-color:#008aff99;
+   margin-bottom:1em;
+   width:100%;
+   height:3em;
+   border-radius:10px;
+   padding-top:7px;
+   font-size:1.3em;
+   color:#ffffff;
+}
+
+.middle-menu:link {
+    text-decoration:none;
+}
+
+.middle-menu:hover {
+    color:#ffffff;
+    background-color:#008affe6;
+}
+
+.middle-menu > span {
+    vertical-align:middle;
+    padding:0;
+    margin:0;

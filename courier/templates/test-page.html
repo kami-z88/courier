@@ -8,9 +8,5 @@
 {% endblock %}
 
 {% block content %}
-               {% for target_task in target_tasks %}
-                   {% for package in target_task.packages.all %}
-                        {{ package.status }}
-                    {% endfor %}
-                {% endfor %}
+<h1>{{x}}</h1>
 {% endblock %}

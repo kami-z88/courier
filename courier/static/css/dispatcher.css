@@ -53,6 +53,7 @@
 .auto-dispatch {
     vertical-align:middle;
     top:-17px;
+    cursor:pointer;
 }
 
 .to-courier-combox {

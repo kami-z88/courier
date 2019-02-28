@@ -16,14 +16,14 @@
 {% block title %}Tracking{% endblock %}
 
 {% block content %}
-<div class="container tracking-table-container">
-    <div class="row">
-        <table id="tracking-table" class="display col-12" style="width:100%;">
+<div class="container">
+    <div class="row table-responsive tracking-table-wrapper">
+        <table id="tracking-table" class="table table-striped">
             <thead>
                 <tr>
-                    <th>Tracking ID</th>
-                    <th> + Packages #</th>
-                    <th>Status</th>
+                    <th>Delivery ID</th>
+                    <th>Package quantity</th>
+                    <th>Delivery Status</th>
                     <th>Request Date</th>
                     <th>Report</th>
                 </tr>
@@ -31,11 +31,11 @@
             <tbody>
             {% for delivery in deliveries %}
                 <tr>
-                    <td>{{ delivery.tracking_id }}</td>
-                    <td>{{ delivery.packages.count }}</td>
+                    <td>{{ delivery.id }}</td>
+                    <td>{{ delivery.package_set.count }}</td>
                     <td>{{ delivery.get_status_display }}</td>
                     <td>{{ delivery.request_time_created }}</td>
-                    <td><a href="{% url 'delivery_report' delivery.tracking_id %}">Report</a></td>
+                    <td><a href="{% url 'delivery_report' delivery.id %}">Report</a></td>
                 </tr>
             {% endfor %}
             </tbody>

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from courier.models import Dispatcher, Courier, Address, ServiceType, PackageTemplate, AddressBook, Comment
+from courier.models import Dispatcher, Courier, Address, ServiceType, PackageTemplate, AddressBook,\
+	Comment, Country, Province, City, ControlPanel
 from courier.models import Delivery, Package
 from django.contrib.auth.models import User
 from account.models import Profile
@@ -7,7 +8,11 @@ from datetime import datetime, timedelta, time
 import json
 from django.http import HttpResponse, HttpResponseRedirect
 from django.db.models import Q
+from django.db import IntegrityError
 
+
+
+cp = ControlPanel.load()
 
 def home_page(request):
 	context = {}
@@ -86,7 +91,7 @@ def visitor_tracking(request):
 def visitor_tracking_ajax(request):
 		code = request.GET.get('code', None)
 		try:
-			package = Package.objects.get(tracking_id=code)
+			package = Package.objects.get(tracking_id=code.strip())
 			if package.handover_time:
 				deliver_time = "{0} {1}".format(package.handover_time.date(), package.handover_time.time().replace(second=0, microsecond=0))
 			else:
@@ -126,82 +131,148 @@ def user_delivery(request):
 	service_types = ServiceType.objects.all()
 	package_templates = PackageTemplate.objects.all()
 	address_book = AddressBook.objects.filter(user=request.user)
+	countries = Country.objects.all()
+	if countries.count() == 1:
+		provinces = Province.objects.all()
+		if provinces.count() == 1:
+			cities = City.objects.all()
+		else:
+			cities = ""
+	else:
+		provinces = ""
+		cities = ""
 
 	context = {
 		"addressBook": address_book,
 		'service_types': service_types,
 		'package_templates': package_templates,
+		'countries': countries,
+		'provinces': provinces,
+		'cities': cities,
+		'zone_division_name': zone_division_name()
 	}
 	return render(request, "user-delivery.html", context)
 
 
+def get_provinces(request):
+	country_id = request.GET.get('country_id', None)
+	country = Country.objects.get(id=country_id)
+	provinces = Province.objects.filter(country=country)
+	data = {}
+	for province in provinces:
+		data[province.id] = province.name.capitalize()
+	if len(data) > 1:
+		data[0] = "Select province ..."
+	data = json.dumps(data, sort_keys=True)
+	return HttpResponse(data, content_type='application/json')
+
+
+def get_cities(request):
+	province_id = request.GET.get('province_id', None)
+	province = Province.objects.get(id=province_id)
+	cities = City.objects.filter(province=province)
+	data = {}
+	for city in cities:
+		data[city.id] = city.name.capitalize()
+	if len(data) > 1:
+		data[0] = "Select city ..."
+	data = json.dumps(data, sort_keys=True)
+	return HttpResponse(data, content_type='application/json')
+
+
 def user_address_book(request):
 	address_book = AddressBook.objects.filter(user=request.user)
+	countries = Country.objects.all()
+	if countries.count() == 1:
+		provinces = Province.objects.all()
+		if provinces.count() == 1:
+			cities = City.objects.all()
+		else:
+			cities = ""
+	else:
+		provinces = ""
+		cities = ""
 	context = {
-		"address_book": address_book
+		"address_book": address_book,
+		"countries": countries,
+		"provinces": provinces,
+		"cities": cities,
+		'zone_division_name': zone_division_name()
 	}
 	return render(request, "user-address-book.html", context)
 
 
-def user_add_address(request):
-	from .forms import AddressBookForm, AddressForm
-	if request.method == "POST":
-		address_book_form = AddressBookForm(request.POST, request.FILES)
-		address_form = AddressForm(request.POST, request.FILES)
-		if address_book_form.is_valid() and address_form.is_valid():
-			address_book_obj = address_book_form.save(commit=False)
-			address_obj = address_form.save()
-			address_book_obj.address = address_obj
-			address_book_obj.user = request.user
-			address_book_obj.save()
-			return redirect("user_address_book")
-	else:
-		address_book_form = AddressBookForm()
-		address_form = AddressForm()
-	context = {
-		'address_book_form': address_book_form,
-		'address_form': address_form
-	}
-	return render(request, "user-add-address.html", context)
-
-
-def user_edit_address(request, slug):
-	from .forms import AddressForm, AddressBookForm
-	if request.method == "POST":
-		try:
-			address_book = AddressBook.objects.get(id=slug, user=request.user)
-			address = Address.objects.get(id=address_book.address_id)
-			address_book_form = AddressBookForm(request.POST, instance=address_book)
-			address_form = AddressForm(request.POST, instance=address)
-			if address_book_form.is_valid() and address_form.is_valid():
-				address_form.save()
-				address_book_form.save()
-				return redirect("user_address_book")
-		except AddressBook.DoesNotExist:
-			return redirect("user_address_book")
-	else:
-		try:
-			address_book = AddressBook.objects.get(id=slug, user=request.user)
-			address = Address.objects.get(id=address_book.address_id)
-			address_book_form = AddressBookForm(instance=address_book)
-			address_form = AddressForm(instance=address)
-		except AddressBook.DoesNotExist:
-			return redirect("user_address_book")
-
-	context = {
-		'address_form': address_form,
-		'address_book_form': address_book_form
-	}
-	return render(request, "user-edit-address.html", context)
-
-
-def user_delete_address(request, slug):
+def add_update_user_address(request):
+	action = request.GET.get('action', None);
+	address_book_id = request.GET.get('address-book-id', None)
+	city = City.objects.get(id=request.GET.get('city', None))
+	errors = []
+	if action == "add":
+		x = AddressBook.objects.filter(user=request.user)
+		address_book = AddressBook()
+		address_book.user = request.user
+		address = Address()
+	elif action == "update":
+		address_book = AddressBook.objects.get(id=address_book_id)
+		if address_book.user != request.user:
+			return
+		else:
+			address = Address.objects.get(id=address_book.address.id)
+	address.city = city
+	address.address1 = request.GET.get('address1', None)
+	address.address2 = request.GET.get('address2', None)
+	address.zip = request.GET.get('zip', None)
+	address.phone = request.GET.get('phone', None)
+	address.fax = request.GET.get('fax', None)
+	address.email = request.GET.get('email', None)
+	address.save()
+	address_book.address = address
+	address_book.title = request.GET.get('title', None).lower()
+	address_book.used_for = 'd'
 	try:
-		address_book = AddressBook.objects.get(id=slug, user=request.user)
+		address_book.save()
+	except IntegrityError as e:
+		errors.append(f'Already have an address with title: {request.GET.get("title", None)}')
+	data = {
+		'errors': errors
+	}
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
+
+
+def get_user_address(request):
+	address_book_id = request.GET.get('addressBook_id', None);
+	address_book = AddressBook.objects.get(id=address_book_id)
+	if address_book.user == request.user:
+		address = Address.objects.get(id=address_book.address.id)
+		data = get_country_province_city_list(address.city.id)
+		if address_book.title:
+			data['title'] = address_book.title.capitalize()
+		else:
+			data['title'] = ""
+		data['address1'] = address.address1
+		data['address2'] = address.address2
+		data['zip'] = address.zip
+		data['phone'] = address.phone
+		data['fax'] = address.fax
+		data['email'] = address.email
+	else:
+		data = {}
+	data = json.dumps(data, sort_keys=True)
+	return HttpResponse(data, content_type='application/json')
+
+
+def delete_user_address(request):
+	address_book_id = request.GET.get("address_book_id", None)
+	data = {}
+	try:
+		address_book = AddressBook.objects.get(id=address_book_id, user=request.user)
 		address_book.delete()
-		return redirect("user_address_book")
+		data['result'] = 'success'
 	except AddressBook.DoesNotExist:
-		return redirect("user_address_book")
+		data['result'] = 'failed'
+	data = json.dumps(data);
+	return HttpResponse(data, content_type='application/json')
 
 
 def user_deposit(request):
@@ -218,59 +289,42 @@ def user_payments(request):
 	return render(request, "user-payments.html", context)
 
 
-def get_user_address(request):
-	id = request.GET.get('id', None)
-	addr = Address.objects.get(id=id)
-	data = {
-		'state': addr.state,
-		'city': addr.city,
-		'address1': addr.address1,
-		'address2': addr.address2,
-		'zip': addr.zip,
-		'phone': addr.phone,
-		'fax': addr.fax,
-
-	}
-	data = json.dumps(data)
-	return HttpResponse(data, content_type='application/json')
-
-
 def submit_user_delivery(request):
 	from django.urls import reverse
 	try:
 		delivery_str = request.GET.get('delivery', None)
 		delivery_data = json.loads(delivery_str)
 		delivery = Delivery()
-		# Set .from_address in delivery
-		delivery.from_address = get_set_address(delivery_data["source_address"], request.user,'s')
-		# Set .status
+		delivery.user = request.user
 		delivery.status = "wd"
-		# Set .payment_type
+		if cp.auto_dispatch:  # If auto dispatch is on sets the delivery courier to intended courier
+			delivery.courier = Courier.objects.get(id=cp.auto_dispatch_courier.id)
+			cp.set_new_task_for_courier(cp.auto_dispatch_courier.id)
+			delivery.status = "wc"
+		delivery.from_address = get_set_address(delivery_data["source_address"], request.user,'s')
 		delivery.payment_type = "os"
-		# Set .service_type
 		delivery.service_type = ServiceType.objects.get(pk=delivery_data["service_type"])
 		package_data = {}
 		delivery.save()
 		for package_index in delivery_data["packages"]:
 			package_data = delivery_data["packages"][package_index]
 			package = Package()
-			delivery_address = get_set_address(package_data, request.user, 'd')
-			package.to_address = delivery_address
-			template_id = package_data["template_id"]
-			package.template = PackageTemplate.objects.get( pk=template_id )
+			package.to_address = get_set_address(package_data, request.user, 'd')
+			package.template = PackageTemplate.objects.get(pk=package_data["template_id"])
 			package.signature = package_data["signature"]
+			package.tracking_code_sharing_sms = package_data["share_tracking_sms"]
+			package.tracking_code_sharing_email = package_data["share_tracking_email"]
+			package.description = package_data["description"]
 			package.delivery = delivery
 			package.save()
-		delivery.user = request.user
-		delivery.save()
 		result = {"status": "success", "redirect": request.build_absolute_uri(reverse('user_tracking'))}
-	except:
-		result = {"status": "error"}
+	except BaseException as e:
+		result = {"status": "error", "message": e}
 	return HttpResponse(json.dumps(result), content_type='application/json')
 
 
 def delivery_item(request, slug):
-	delivery = Delivery.objects.get(tracking_id=slug)
+	delivery = Delivery.objects.get(id=slug)
 	packages = Package.objects.filter(delivery=delivery)
 	context = {
 		"delivery": delivery,
@@ -328,11 +382,16 @@ def dispatcher_tasks(request):
 		user_name = user.username
 		user_img_path = "/files/{}".format(Profile.objects.get(user=user).avatar)
 		couriers_info[courier.id] = {'userName':user_name, 'userImgPath':user_img_path}
-
+	if cp.auto_dispatch:
+		auto_dispatch_courier_id = cp.auto_dispatch_courier.id
+	else:
+		auto_dispatch_courier_id = ""
 	context = {
 		'couriers': couriers_info,
 		'deliveries_to_handle': deliveries_to_handle,
-		'reviewed_deliveries': reviewed_deliveries
+		'reviewed_deliveries': reviewed_deliveries,
+		'auto_dispatch': cp.auto_dispatch,
+		'auto_dispatch_courier_id': auto_dispatch_courier_id
 	}
 	return render(request, "dispatcher-tasks.html", context)
 
@@ -379,6 +438,7 @@ def set_delivery_courier(request):
 	delivery.save()
 	updated_delivery = Delivery.objects.get(id=delivery_id)
 	if (str(updated_delivery.courier.id) == courier_id) and (updated_delivery.status == 'wc') :
+		cp.set_new_task_for_courier(courier_id)
 		data = {
 			'result': 'success'
 		}
@@ -415,6 +475,17 @@ def set_delivery_rejection_reason(request):
 		}
 	data = json.dumps(data)
 	return HttpResponse(data, content_type='application/json')
+
+
+def set_auto_dispatch_on(request):
+	courier_id = request.GET.get("courier-id", None)
+	result = cp.set_auto_dispatch(courier_id)
+	result = json.dumps(result)
+	return HttpResponse(result, content_type='application/json')
+
+
+def set_auto_dispatch_off(request):
+	cp.unset_auto_dispatch()
 
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -481,7 +552,10 @@ def courier_tasks_pickedup(request):
 	}
 	return render(request, "courier-tasks-pickedup.html", context)
 
+
 rejected_package_ids = []
+
+
 def courier_tasks_rejected_pickup(request):
 	courier = Courier.objects.get(user=request.user)
 	deliveries = Delivery.objects.filter(courier=courier)
@@ -515,6 +589,10 @@ def courier_target_task(request):
 			elif status == 'rc':
 				rejected += 1
 		package_statistics[delivery.id] = {'total': total, 'unhandled': unhandled, 'picked': picked, 'rejected': rejected}
+	try:
+		packages = packages
+	except UnboundLocalError:
+		packages = ""
 	context = {
 		'target_pickup_deliveries': deliveries,
 		'packages': packages,
@@ -580,15 +658,20 @@ def withdraw_target_task(request):
 
 def check_db_for_courier(request):
 	courier = Courier.objects.get(user=request.user)
-	try:
-		request_count = Delivery.objects.filter(courier=courier, status='wc').count()
-		data = {
-			'request_count': request_count,
-		}
-	except Delivery.DoesNotExist:
-		data = {
-			'last_delivery_id': 0,
-		}
+	data = {
+		'hasCourierNewTask': cp.has_courier_new_task(courier.id)
+	}
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
+
+
+def unset_new_task_for_courier(request):
+	courier = Courier.objects.get(user=request.user)
+	cp.unset_new_task_for_courier(courier.id)
+	if not cp.has_courier_new_task(courier.id):
+		data = {'result':'success'}
+	else:
+		data = {'result': 'failure'}
 	data = json.dumps(data)
 	return HttpResponse(data, content_type='application/json')
 
@@ -711,13 +794,13 @@ def handover_package(request):
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 def get_set_address(address_data, user, usage):
 	address = Address()
-	address.state = address_data["state"]
-	address.city = address_data["city"]
+	address.city = City.objects.get(id=address_data["city"])
 	address.address1 = address_data["address1"]
 	address.address2 = address_data["address2"]
 	address.zip = address_data["zip"]
 	address.phone = address_data["phone"]
 	address.fax = address_data["fax"]
+	address.email = address_data["email"]
 	address_hash = address.get_one_line_hash()
 	try:
 		address_from_db = Address.objects.get(hash=address_hash)
@@ -801,6 +884,43 @@ def sync_delivery_packages_status_1(package_id):
 		delivery.save()
 
 
+def zone_division_name():
+	from settings.models import ZoneSystem
+	zone_system = ZoneSystem.objects.all().first()
+	return zone_system.get_name_display()
+
+
+def get_country_province_city_list(city_id):
+	city = City.objects.get(id=city_id)
+	cities = City.objects.filter(province=city.province)
+	province = Province.objects.get(id=city.province.id)
+	provinces = Province.objects.filter(country=province.country)
+	countries = Country.objects.all()
+	data = {
+		'countries': {},
+		'selected-country-id': '',
+		'provinces': {},
+		'selected-province-id': '',
+		'cities': {},
+		'selected-city-id': ''
+	}
+	for country in countries:
+		data['countries'][country.id] = country.name.capitalize()
+	if len(data['countries']) > 1:
+		data['countries'][0] = 'Select country ...'
+	data['selected-country-id'] = province.country.id
+	for province in provinces:
+		data['provinces'][province.id] = province.name.capitalize()
+	if len(data['provinces']) > 1:
+		data['provinces'][0] = 'Select province ...'
+	data['selected-province-id'] = city.province.id
+	for city in cities:
+		data['cities'][city.id] = city.name.capitalize()
+	if len(data['cities']) > 1:
+		data['cities'][0] = 'Select city ...'
+	data['selected-city-id'] = city_id
+	return data
+
 # ---------------------------------------------------------------------------
 # This is for testing perpose on develepment phase
 # Let this part remain at the bottom
@@ -808,9 +928,10 @@ def sync_delivery_packages_status_1(package_id):
 
 
 def test_page(request):
-	courier = Courier.objects.get(user=request.user)
-	deliveries = Delivery.objects.filter(Q(status='ap') | Q(packages__status='ah'), courier = courier)
+	pass
+# 	#cp.unset_new_task_for_courier(1)
 	context = {
-		'target_tasks': deliveries
+ 		'x': ""#cp.auto_dispatch_courier.id
 	}
 	return render(request, "test-page.html", context)
+# #.set_new_task_for_courier(2)

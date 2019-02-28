@@ -2,7 +2,10 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from .models import AvailableTime, ServiceType, Dispatcher, Courier, Delivery, DepositPayment, Payment, Address, AddressBook, PackageTemplate, Package, OnlinePayment
+from .models import AvailableTime, ServiceType, Dispatcher, Courier, Delivery,\
+	DepositPayment, Payment, Address, AddressBook, PackageTemplate, Package,\
+	OnlinePayment, Country, Province, City
+
 
 class AvailableTimeInline(admin.TabularInline):
 	model = ServiceType.available_time.through
@@ -28,12 +31,13 @@ class DispatcherAdmin(admin.ModelAdmin):
 class CourierAdmin(admin.ModelAdmin):
 	list_display = ['user','avatar']
 
+
 class Addressline(admin.TabularInline):
 	model = Address
 
 
 class DeliveryAdmin(admin.ModelAdmin):
-	list_display = ['tracking_id','status','cost','payment_type']
+	list_display = ['status','cost','payment_type']
 
 
 class DepositAdmin(admin.ModelAdmin):
@@ -45,13 +49,16 @@ class PaymentAdmin(admin.ModelAdmin):
 
 
 class AddressAdmin(admin.ModelAdmin):
-	list_display = ['address1','address2','city','state','zip','phone']
+	list_display = ['id', 'address1', 'address2', 'city', 'zip', 'phone']
+
 
 class AddressBookAdmin(admin.ModelAdmin):
 	pass
 
+
 class PackageTemplateAdmin(admin.ModelAdmin):
 	pass
+
 
 class PackageAdmin(admin.ModelAdmin):
 	pass
@@ -61,7 +68,16 @@ class OnlinePaymentAdmin(admin.ModelAdmin):
 	list_display = ['user','value','meta']
 
 
+class CountryAdmin(admin.ModelAdmin):
+	list_display = ['name']
 
+
+class ProvinceAdmin(admin.ModelAdmin):
+	list_display = ['name', 'country']
+
+
+class CityAdmin(admin.ModelAdmin):
+	list_display = ['name', 'province']
 
 
 admin.site.register(AvailableTime, AvailableTimeAdmin)
@@ -76,4 +92,7 @@ admin.site.register(AddressBook, AddressBookAdmin)
 admin.site.register(PackageTemplate, PackageTemplateAdmin)
 admin.site.register(Package, PackageAdmin)
 admin.site.register(OnlinePayment, OnlinePaymentAdmin)
+admin.site.register(Country, CountryAdmin)
+admin.site.register(Province, ProvinceAdmin)
+admin.site.register(City, CityAdmin)
 

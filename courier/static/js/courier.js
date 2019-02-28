@@ -7,34 +7,25 @@ $(document).ready(function(){
         $.ajax({
             url : '/courier/ajax/check-db-for-courier/',
             type : 'GET',
-            success : function(data){
-            //console.log("before: " + sessionStorage.last_row_count + "    now :" + data.request_count);
-               current_row_count =  data.request_count;
-                if (typeof(Storage) !== "undefined") {
-                    if(sessionStorage.last_row_count){
-                        if(Number(current_row_count) > (sessionStorage.last_row_count)){
-                            sessionStorage.last_row_count = current_row_count;
-                            if(window.location.pathname == '/courier/tasks/should-pickup'){
-                                sessionStorage.makeSoundAlert = 'yes';
-                                location.reload(true);
-                            } else {
-                                audio = document.getElementById("alertAudio");
-                                audio.play();
-                            }
-
-                        }else {
-                            sessionStorage.last_row_count = current_row_count;
-                        }
-                    }else {
-                        sessionStorage.last_row_count = current_row_count;
+            success : function(data){ console.log("location1: " + data.hasCourierNewTask);
+                if(typeof(Storage) !== "undefined") {
+                    console.log("location2: " + data.hasCourierNewTask)
+                    if(window.location.pathname == '/courier/tasks/should-pickup' && data.hasCourierNewTask){
+                        console.log("location3: " + data.hasCourierNewTask)
+                        sessionStorage.makeSoundAlert = 'yes';
+                        unset_new_task_for_courier(true);
+                    } else if(data.hasCourierNewTask) {
+                        console.log("location4: " + data.hasCourierNewTask)
+                         unset_new_task_for_courier();
+                        audio = document.getElementById("alertAudio");
+                        audio.play();
+                        sessionStorage.makeSoundAlert = 'no';
                     }
+
                 }
-            },
-            error : function() {
-                current_row_count =  -1;
-            },
-        })
-    }, 20000);
+            }
+        });
+    }, 20000)
 
      /*
         Make a sound alert if new delivery request recieved
@@ -73,6 +64,18 @@ $(document).ready(function(){
         $(".expand-collapse.hidden").removeClass("hidden");
     }
 })
+
+function unset_new_task_for_courier(reload=false){
+    $.ajax({
+        url:'/courier/ajax/unset-new-task-for-courier/',
+        type: 'Get',
+        success: function(data){
+            if(data.result == 'success' && reload){
+                location.reload(true);
+            }
+        },
+    });
+}
 
 // In courier-tasks.html page give "selected" class  to clicked tab
 //      and keep a reference to selected element via session

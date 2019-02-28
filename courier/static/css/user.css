@@ -1,3 +1,7 @@
+.btn:hover {
+    cursor:pointer
+}
+
 body{
     background-image:url("/static/images/user_background.jpg");
     background-repeat: no-repeat;
@@ -356,6 +360,7 @@ div.package-template div.selective-option-item:hover{
 
 .package-details-title {
     color: #6060e0;
+    font-weight:bold;
 }
 
 .package-chooser .selective-option-item.selected{
@@ -410,10 +415,11 @@ div.package-template div.selective-option-item:hover{
 /*
     Tracking Page
 */
-.tracking-table-container{
-    background-color: #FFF;
-    padding: 20px;
-    margin: 20px;
+.tracking-table-wrapper {
+    margin:2em auto 0 auto;
+    padding:2em;
+    background-color:#acbbfce6;
+    border-radius:5px;
 }
 
 .step-two-btn, .step-three-btn {
@@ -476,34 +482,75 @@ ul.address > li {
 
 }
 
-
-/*
-    page: user-add-address.html
-*/
-.add-address-form {
-    margin:auto;
+.address-form {
     background-color:#e0e0e0;
-    margin-top:1em;
-    padding:1em 2em 2em 2em;
-    border-radius:5px;
 }
 
-.add-address-form > .row {
-    margin-bottom:5px;
+.src {
+    padding: 1em;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px #424242;
 }
 
-.errorlist {
-    list-style-type:none;
+.address-form-title {
+    color : green;
+}
+
+.btn {
+    font-size: 0.8em;
+    box-shadow: 3px 3px 3px #151a26;
+}
+
+.confirm-delete {
     color:red;
+}
+
+#clear-src-address, #get-src-address, #clear-destn-address, #get-destn-address {
+	background-color: #120202;
+}
+
+.address-book-title {
+    font-weight:bold;
+}
+
+.btn-text {
+    margin-right:0.5em;
+}
+
+.hidden {
+    display:none;
+}
+
+.wrapper {
+    background-color:transparent;
     margin:auto;
-}
-
-.btn-wrapper {
     text-align:center;
+    margin-top:10%;
 }
 
-.btn-wrapper > .btn {
-    width:50%;
-    margin-top:5px;
-    cursor:pointer;
+.middle-menu {
+   border: 1px solid #000000;
+   background-color:#008aff99;
+   margin-bottom:1em;
+   width:100%;
+   height:3em;
+   border-radius:10px;
+   padding-top:7px;
+   font-size:1.3em;
+   color:#ffffff;
+}
+
+.middle-menu:link {
+    text-decoration:none;
+}
+
+.middle-menu:hover {
+    color:#ffffff;
+    background-color:#008affe6;
+}
+
+.middle-menu > span {
+    vertical-align:middle;
+    padding:0;
+    margin:0;
 }

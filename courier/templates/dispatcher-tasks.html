@@ -72,19 +72,19 @@
          <h3>RECENT DELIVERY REQUESTS</h3>
       </div>
       <div class="col-sm-3">
-         <label class="switch auto-dispatch">
-         <input type="checkbox" class="auto-dispatch">
+         <label class="switch auto-dispatch" >
+         <input type="checkbox" id="auto-dispatch-check" class="auto-dispatch" {% if auto_dispatch %}checked{% endif %}>
          <span class="slider"></span>
          </label>
-         AUTO DISPATCH
+         <label class="auto-dispatch" for="auto-dispatch-check">AUTO DISPATCH</label>
       </div>
       <div class="col-sm-3 to-courier-combox">
          <div class="ui-widget">
             <label>To Courier: </label>
-            <select id="combobox" disabled >
+            <select class="custom-select" id="auto-dispatch-select" {% if not auto_dispatch %}disabled{% endif %} >
                <option value="-1">Select Courier ...</option>
                {% for courier_id, value in couriers.items %}
-               <option value="{{ courier_id }}">{{ value.userName | title }}</option>
+               <option value="{{ courier_id }}" {% if auto_dispatch and courier_id == auto_dispatch_courier_id %}selected{% endif %}>{{ value.userName | title }}</option>
                {% endfor %}
             </select>
          </div>

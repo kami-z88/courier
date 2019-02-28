@@ -10,336 +10,426 @@
 
 {% block footer-after %}
 <script type="text/javascript" src="{% static 'js/user.js' %}"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0y6MWs8gQnQeQkOTMcM7FWB33oxCHje8&callback=initMap"></script>
+<!--<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0y6MWs8gQnQeQkOTMcM7FWB33oxCHje8&callback=initMap"></script>-->
 {% endblock %}
 
 
 {% block title %}Delivery{% endblock %}
 
 {% block content %}
+
+
 <!-- Destination Address Modal -->
 <div class="modal fade bd-example-modal-lg" id="package-template-modal" tabindex="-1" role="dialog" aria-labelledby="package-template-modalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-    	<div class="modal-content">
-    	    <div class="modal-header">
-    	    	<h5 class="modal-title order-steps-header" id="package-template-modalLabel">Destination Address</h5>
-    	    	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-    	    	  <span aria-hidden="true">&times;</span>
-    	    	</button>
-    	    </div>
-    	    <div class="modal-body">
-                <div class="row">
-                    <div  style="margin:auto" class="col-md-6">
-                        <fieldset>
-                             <span id="data-holder" data-ptname="good"></span>
-                             <div class="input-group mb-3">
-                                 <select class="custom-select" id="addressbook-for-destn">
-                                     <option selected>From Address Book ...</option>
-                                     {% for addressBook_item in addressBook %}
-                                     <option title="{{ addressBook_item.address }}" style="color:red"  value="{{ addressBook_item.address.id }}">{% if addressBook_item.title %}{{ addressBook_item.title }}{% else %}{{ addressBook_item.address|truncatechars:24 }}{% endif %}</option>
-                                     {% endfor %}
-                                 </select>
-                                 <div class="input-group-append">
-                                     <button id="get-destn-address" class="btn btn-outline-secondary" type="button">Get</button>
-                                     <button id="clear-destn-address" class="btn btn-outline-secondary pull-right"><i class="fas fa-eraser"></i></button>
-                                 </div>
-                             </div>
-                            <!--<legend>Destination Address</legend>-->
-                            <div class="form-group">
-                                <label class="col-md-12 control-label" for="State">State<span class="star">*</span></label>
-                                <div class="col-md-12">
-                                    <input id="destn-state" name="State" type="text" placeholder="state" class="form-control input-md">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-12 control-label" for="city">City/Town<span class="star">*</span></label>
-                              <div class="col-md-12">
-                              <input id="destn-city" name="city" type="text" placeholder="city or town" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-12 control-label" for="address1">Address Line1<span class="star">*</span></label>
-                              <div class="col-md-12">
-                              <input id="destn-address1" name="address1" type="text" placeholder="Street address, P.O. box, company name, c/o" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-12 control-label" for="address2">Address Line2</label>
-                              <div class="col-md-12">
-                              <input id="destn-address2" name="address2" type="text" placeholder="Apartment, suite , unit, building, floor, etc." class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-12 control-label" for="zip">Zip/Postal code<span class="star">*</span></label>
-                              <div class="col-md-12">
-                              <input id="destn-zip" name="zip" type="text" placeholder="zip or postal code" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-12 control-label" for="phone">Phone</label>
-                              <div class="col-md-12">
-                              <input id="destn-phone" name="phone" type="text" placeholder="Phone Number" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-12 control-label" for="fax">Fax</label>
-                              <div class="col-md-12">
-                              <input id="destn-fax" name="fax" type="text" placeholder="fax Number" class="form-control input-md">
-                              </div>
-                            </div>
-                            <hr>
-                            <h5>Receiver Specifications</h5>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="signature">
-                                <label class="form-check-label" for="signature">Signature Required?</label>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <!-- <div class="col-md-6 from-address-map">
-                        <div class="delivery-from-address-map" id="destination-map"></div>
-                    </div> -->
-                </div>
-    	    </div>
-    	    <div class="modal-footer">
-    	    	<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-    	    	<button id="add-package" type="button" class="btn btn-primary">Add Package</button>
-    	    </div>
-    	</div>
-    </div>
-</div> <!-- Modal End -->
-
-<!-- Message presenting Modal -->
-<div class="modal" id="show-message-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
-      </div>
-    </div>
-  </div>
-</div> <!-- Modal End -->
-
-<form class="form cf">
-	<div class="wizard">
-		<div class="wizard-inner">
-			<div class="connecting-line"></div>
-			<ul class="nav nav-tabs row" id="nav-tab" role="tablist">
-				<li role="presentation" class="nav-item col-sm">
-					<a href="#step1" data-toggle="tab" aria-controls="step1" role="tab" title="Step 1" class="nav-link active active-wizard">
-                        <span class="round-tab"><i class="fas fa-rocket"></i></span>
-			        </a>
-				</li>
-				<li role="presentation" class="nav-item col-sm disabled">
-					<a href="#step2" data-toggle="tab" aria-controls="step2" role="tab" title="Step 2" class="nav-link">
-				        <span class="round-tab"><i class="fas fa-map-marker-alt"></i></span>
-        			</a>
-				</li>
-				<li role="presentation" class="nav-item col-sm disabled">
-					<a href="#step3" data-toggle="tab" aria-controls="step3" role="tab" title="Step 3" class="nav-link">
-				        <span class="round-tab"><i class="fas fa-cubes"></i></span>
-			        </a>
-				</li>
-				<li role="presentation" class="nav-item col-sm disabled">
-					<a href="#step4" data-toggle="tab" aria-controls="step4" role="tab" title="Step 4" class="nav-link report-tab-link">
-                        <span class="round-tab"><i class="fas fa-truck"></i></span>
-			        </a>
-				</li>
-			</ul>
-		</div>
-
-		<div class="tab-content container" id="nav-tabContent">
-			<div class="tab-pane row active" role="tabpanel" id="step1">
-                <div class="center col-8">
-                    <h2 class="order-steps-header">Choose Service Type</h2>
-                    <div class="row form-group selective-option service-chooser">
-                        {% for st in service_types %}
-                            <div class="service-type-wrapper col-xs-12 col-sm-12 col-md-4 col-lg-4" >
-                                <div class="service-type selective-option-item">
-                                        <span class="title service-title">{{ st.title|upper }}</span>
-                                        <span class="description">{{ st.description | capfirst }}</span>
-                                        <input type="radio" name="service-type" value="{{ st.pk }}" class="selective-option-radio">
-                                    <div class="clear"></div>
-                                </div>
-                            </div>
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title order-steps-header" id="package-template-modalLabel">Destination Address</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body address-form">
+            <div class="row form-group">
+               <div class="col-md-4">
+                  <label class="col-md-4 control-label"><button id="clear-destn-address" class="btn btn-outline-secondary pull-right">Clear Fields  <i class="fas fa-eraser"></i></button></label>
+               </div>
+               <div class="col-md-8">
+                  <div class="input-group mb-3">
+                     <select class="custom-select" id="addressbook-for-destn">
+                        <option value="0" selected>From Address Book ...</option>
+                        {% for addressBook_item in addressBook %}
+                        <option title="{{ addressBook_item.address }}"   value="{{ addressBook_item.id }}">{% if addressBook_item.title %}{{ addressBook_item.title | capfirst }}{% else %}{{ addressBook_item.address|truncatechars:24 }}{% endif %}</option>
                         {% endfor %}
-                    </div>
-                </div>
+                     </select>
+                     <div class="input-group-append">
+                        <button id="get-destn-address" class="btn btn-outline-secondary" type="button">Get</button>
+                     </div>
+                  </div>
+               </div>
             </div>
-			<div class="tab-pane row" role="tabpanel" id="step2">
-				<div class="row">
-                    <div  style="margin:auto;" class="col-md-6 ">
-                        <fieldset>
-                            <div class="row">
-                                <div  class="col-md-6">
-                                    <legend class="order-steps-header">
-                                        Pickup Address
-                                        <button id="clear-src-address" class="btn btn-outline-secondary pull-right"><i class="fas fa-eraser"></i></button>
-                                    </legend>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="input-group mb-3">
-                                    <select class="custom-select" id="addressbook-for-src">
-                                        <option selected>From Address Book ...</option>
-                                         {% for addressBook_item in addressBook %}
-                                         <option title="{{ addressBook_item.address }}" style="color:red"  value="{{ addressBook_item.address.id }}">{% if addressBook_item.title %}{{ addressBook_item.title }}{% else %}{{ addressBook_item.address|truncatechars:24 }}{% endif %}</option>
-                                         {% endfor %}
-                                    </select>
-                                    <div class="input-group-append">
-                                        <button id="get-src-address" class="btn btn-outline-secondary" type="button">Get</button>
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-6 control-label" for="src-state">State<span class="star">*</span></label>
-                              <div class="col-md-6">
-                                  <input id="src-state" name="State" type="text" placeholder="state" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-4 control-label" for="src-city">City/Town<span class="star">*</span></label>
-                              <div class="col-md-6">
-                              <input id="src-city" name="city" type="text" placeholder="city or town" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-6 control-label" for="src-address1">Address Line1<span class="star">*</span></label>
-                              <div class="col-md-12">
-                              <input id="src-address1" name="address1" type="text" placeholder="Street address, P.O. box, company name, c/o" class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-6 control-label" for="src-address2">Address Line2</label>
-                              <div class="col-md-12">
-                              <input id="src-address2" name="address2" type="text" placeholder="Apartment, suite , unit, building, floor, etc." class="form-control input-md">
-                              </div>
-                            </div>
-                            <div class="form-group">
-                              <label class="col-md-6 control-label" for="src-zip">Zip/Postal code<span class="star">*</span></label>
-                              <div class="col-md-6">
-                              <input id="src-zip" name="zip" type="text" placeholder="zip or postal code" class="form-control input-md" >
-                              </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-12 control-label" for="src-phone">Phone</label>
-                                <div class="col-md-12">
-                                    <input id="src-phone" name="phone" type="text" placeholder="Phone Number" class="form-control input-md">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-12 control-label" for="src-fax">Fax</label>
-                                <div class="col-md-12">
-                                    <input id="src-fax" name="fax" type="text" placeholder="fax Number" class="form-control input-md">
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <!--<div class="col-md-6 from-address-map">
-                        <div class="delivery-from-address-map" id="source-map"></div>
-                    </div> -->
-				</div>
-				<button type="button" class="btn btn-light float-right step-two-btn">Next Step</button></li>
-			</div>
-			<div class="tab-pane" role="tabpanel" id="step3">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="container">
-                            <div class="row form-group selective-option package-chooser">
-                                {% for pt in package_templates %}
-                                    {% if pt.size_type == "t" or pt.size_type == "m" %}
-                                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 package-template" data-toggle="modal" data-target="#package-template-modal">
-                                            <div class="selective-option selective-option-item">
-                                                <div class="col-xs-8 col-sm-8 col-md-12 col-lg-12">
-                                                    <span class="title template-title">{{ pt.title }}</span>
-                                                    <span class="description">{{ pt.description }}</span>
-                                                    <input type="radio" name="package-template" value="{{ pt.pk }}" class="selective-option-radio">
-                                                </div>
-                                                <div class="clear"></div>
-                                            </div>
-                                        </div>
-                                    {% elif pt.size_type == "c" %}
-                                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 package-template">
-                                        <div class="selective-option selective-option-item">
-                                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                                <span class="title template-title">{{ pt.title }}</span>
-                                                <span class="description">
-                                                    <div class="input-group">
-                                                        <span class="input-group-addon">Weight</span>
-                                                        <input id="custom-size-weight" type="text" class="form-control " name="package-weight">
-                                                        <select id="custom-package-wight" class="form-control">
-                                                            <option value="kg">Kilogram</option>
-                                                            <option value="lb">Pounds</option>
-                                                        </select>
-                                                    </div>
-                                                    <label id="label-dimensions">Dimensions <span id="dimensions">( in centimetres )</span></label>
-                                                    <div class="input-group">
-                                                        <span class="input-group-addon">Width</span>
-                                                        <input id="custom-size-width" type="text" class="form-control" name="package-width" placeholder="">
-                                                    </div>
-                                                    <div class="input-group">
-                                                        <span class="input-group-addon">Height</span>
-                                                        <input id="custom-size-height" type="text" class="form-control" name="package-height" placeholder="">
-                                                    </div>
-                                                    <div class="input-group">
-                                                        <span class="input-group-addon">Length</span>
-                                                        <input id="custom-size-length" type="text" class="form-control" name="package-length" placeholder="">
-                                                    </div>
-                                                    <div class="col-md-12 text-center">
-                                                      <button id="custom-size-submit-btn" type="button" class="btn btn-primary my-1 disabled"  data-target="#package-template-modal">Next</button>
-                                                    </div>
-                                                    <div class="show-error-msg">Please make sure you are have entered numeric values greater than zero in all feilds!</div>
-                                                </span>
-                                                <input type="radio" name="package-template" value="{{ pt.pk }}" class="selective-option-radio">
-                                            </div>
-                                            <div class="clear"></div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                {% endfor %}
+            <input type="hidden" name="csrf-token" value="">
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-country">Country<span class="star">*</span></label>
+               <div class="col-md-8">
+                  <select  class="custom-select col-md-6" id="destn-country">
+                     {% if countries.count > 1 %}
+                     <option selected value="0">Select country ...</option>
+                     {% endif %}
+                     {% for country in countries %}
+                     <option value="{{ country.id }}">{{ country.name | title }}</option>
+                     {% endfor %}
+                  </select>
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-province">Province<span class="star">*</span></label>
+               <div class="col-md-8">
+                  <select class="custom-select col-md-6" id="destn-province">
+                     {% if provinces.count > 1 or provinces == ""%}
+                     <option selected value="0">Select province ...</option>
+                     {% endif %}
+                     {% for province in provinces %}
+                     <option value="{{ province.id }}">{{ province.name | title }}</option>
+                     {% endfor %}
+                  </select>
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-city">City/Town<span class="star">*</span></label>
+               <div class="col-md-8">
+                  <select class="custom-select col-md-6" id="destn-city">
+                     {% if cities.count > 1 or cities == "" %}
+                     <option selected value="0">Select city ...</option>
+                     {% endif %}
+                     {% for city in cities %}
+                     <option value="{{ city.id }}">{{ city.name | title }}</option>
+                     {% endfor %}
+                  </select>
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-address1">Address Line1<span class="star">*</span></label>
+               <div class="col-md-8">
+                  <textarea id="destn-address1" name="address1" type="text" placeholder="Street address, P.O. box, company name, c/o" class="form-control input-md"></textarea>
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-address2">Address Line2</label>
+               <div class="col-md-8">
+                  <textarea id="destn-address2" name="address2" type="text" placeholder="Apartment, suite , unit, building, floor, etc." class="form-control input-md"></textarea>
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-zip">{{zone_division_name}}<span class="star">*</span></label>
+               <div class="col-md-8">
+                  <input id="destn-zip" name="zip" type="text" placeholder="{{zone_division_name}}" class="form-control input-md" >
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-phone">Phone</label>
+               <div class="col-md-8">
+                  <input id="destn-phone" name="phone" type="text" placeholder="Preferably Cell Phone" class="form-control input-md">
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-fax">Fax</label>
+               <div class="col-md-8">
+                  <input id="destn-fax" name="fax" type="text" placeholder="Fax Number" class="form-control input-md">
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="destn-email">E-Mail</label>
+               <div class="col-md-8">
+                  <input id="destn-email" name="fax" type="email" placeholder="E-Mail" class="form-control input-md">
+               </div>
+            </div>
+            <hr>
+            <h5>Receiver Specifications</h5>
+             <div class="row form-group">
+             <div class="col-md-4">
 
-                            </div>
+             </div>
+            <div class="form-check col-md-8">
+               <input class="form-check-input" type="checkbox" value="" id="signature">
+               <label class="form-check-label" for="signature">Signature Required</label>
+            </div>
+             </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="package-description">Description</label>
+               <div class="col-md-8">
+                  <textarea id="package-description" name="description" type="text" placeholder="Leave a comment or any description about this package if necessary" class="form-control input-md"></textarea>
+               </div>
+            </div>
+            <div class="row form-group">
+               <label class="col-md-4 control-label" for="package-description">Share tracking code via</label>
+               <div class="col-md-4">
+                    <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="share-tracking-sms">
+                    <label class="form-check-label" for="share-tracking-sms">SMS</label>
+                    </div>
+               </div>
+               <div class="col-md-4">
+                    <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="share-tracking-email">
+                    <label class="form-check-label" for="share-tracking-email">E-Mail</label>
+                    </div>
+               </div>
+            </div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="add-package" type="button" class="btn btn-primary">Add Package</button>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- Modal End -->
+<!-- Message presenting Modal -->
+<div class="modal" id="message-modal" tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- Modal End -->
+<form class="form cf">
+   <div class="wizard">
+      <div class="wizard-inner">
+         <div class="connecting-line"></div>
+         <ul class="nav nav-tabs row" id="nav-tab" role="tablist">
+            <li role="presentation" class="nav-item col-sm">
+               <a href="#step1" data-toggle="tab" aria-controls="step1" role="tab" title="Step 1" class="nav-link active active-wizard">
+               <span class="round-tab"><i class="fas fa-rocket"></i></span>
+               </a>
+            </li>
+            <li role="presentation" class="nav-item col-sm disabled">
+               <a href="#step2" data-toggle="tab" aria-controls="step2" role="tab" title="Step 2" class="nav-link">
+               <span class="round-tab"><i class="fas fa-map-marker-alt"></i></span>
+               </a>
+            </li>
+            <li role="presentation" class="nav-item col-sm disabled">
+               <a href="#step3" data-toggle="tab" aria-controls="step3" role="tab" title="Step 3" class="nav-link">
+               <span class="round-tab"><i class="fas fa-cubes"></i></span>
+               </a>
+            </li>
+            <li role="presentation" class="nav-item col-sm disabled">
+               <a href="#step4" data-toggle="tab" aria-controls="step4" role="tab" title="Step 4" class="nav-link report-tab-link">
+               <span class="round-tab"><i class="fas fa-truck"></i></span>
+               </a>
+            </li>
+         </ul>
+      </div>
+      <div class="tab-content container" id="nav-tabContent">
+         <div class="tab-pane row active" role="tabpanel" id="step1">
+            <div class="center col-8">
+               <h2 class="order-steps-header">Choose Service Type</h2>
+               <div class="row form-group selective-option service-chooser">
+                  {% for st in service_types %}
+                  <div class="service-type-wrapper col-xs-12 col-sm-12 col-md-4 col-lg-4" >
+                     <div class="service-type selective-option-item">
+                        <span class="title service-title">{{ st.title|upper }}</span>
+                        <span class="description">{{ st.description | capfirst }}</span>
+                        <input type="radio" name="service-type" value="{{ st.pk }}" class="selective-option-radio">
+                        <div class="clear"></div>
+                     </div>
+                  </div>
+                  {% endfor %}
+               </div>
+            </div>
+         </div>
+         <div class="tab-pane row" role="tabpanel" id="step2">
+            <div class="row">
+               <div  style="margin:auto;" class="address-form src col-md-6 ">
+                  <fieldset>
+                     <div class="row">
+                        <div  class="col-md-12">
+                           <legend class="order-steps-header">
+                              Pickup Address
+                           </legend>
                         </div>
-                    </div>
-                    <div  id="package-container" class="col-md-6">
-                        <h3 class="order-steps-header">Your Delivery Requests</h3>
-                        <hr/>
-                        <!-- Place for dynamically inserted ".chosen packages" -->
-                    </div>
-                </div>
-                <button type="button" class="btn btn-light float-right step-three-btn">Next Step</button></li>
+                     </div>
+                     <div class="row form-group">
+                        <div class="col-md-4">
+                           <button id="clear-src-address" class="btn btn-outline-secondary pull-right">Clear Fields  <i class="fas fa-eraser"></i></button>
+                        </div>
+                        <div class="col-md-8">
+                           <div class="input-group mb-3">
+                              <select class="custom-select" id="addressbook-for-src">
+                                 <option value="0" selected>From Address Book ...</option>
+                                 {% for addressBook_item in addressBook %}
+                                 <option title="{{ addressBook_item.address }}" value="{{ addressBook_item.id }}">
+                                    {% if addressBook_item.title %}
+                                       {{ addressBook_item.title | capfirst }}
+                                    {% else %}
+                                       {{ addressBook_item.address|truncatechars:24 }}
+                                    {% endif %}
+                                 </option>
+                                 {% endfor %}
+                              </select>
+                              <div class="input-group-append">
+                                 <button id="get-src-address" class="btn btn-outline-secondary" type="button">Get</button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <input type="hidden" name="csrf-token" value="">
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-country">Country<span class="star">*</span></label>
+                        <div class="col-md-8">
+                           <select  class="custom-select col-md-6" id="src-country">
+                              {% if countries.count > 1 %}
+                              <option selected value="0">Select country ...</option>
+                              {% endif %}
+                              {% for country in countries %}
+                              <option value="{{ country.id }}">{{ country.name | title }}</option>
+                              {% endfor %}
+                           </select>
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-province">Province<span class="star">*</span></label>
+                        <div class="col-md-8">
+                           <select class="custom-select col-md-6" id="src-province">
+                              {% if provinces.count > 1 or provinces == ""%}
+                              <option selected value="0">Select province ...</option>
+                              {% endif %}
+                              {% for province in provinces %}
+                              <option value="{{ province.id }}">{{ province.name | title }}</option>
+                              {% endfor %}
+                           </select>
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-city">City/Town<span class="star">*</span></label>
+                        <div class="col-md-8">
+                           <select class="custom-select col-md-6" id="src-city">
+                              {% if cities.count > 1 or cities == "" %}
+                              <option selected value="0">Select city ...</option>
+                              {% endif %}
+                              {% for city in cities %}
+                              <option value="{{ city.id }}">{{ city.name | title }}</option>
+                              {% endfor %}
+                           </select>
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-address1">Address Line1<span class="star">*</span></label>
+                        <div class="col-md-8">
+                           <textarea id="src-address1" name="address1" type="text" placeholder="Street address, P.O. box, company name, c/o" class="form-control input-md"></textarea>
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-address2">Address Line2</label>
+                        <div class="col-md-8">
+                           <textarea id="src-address2" name="address2" type="text" placeholder="Apartment, suite , unit, building, floor, etc." class="form-control input-md"></textarea>
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                         <label class="col-md-4 control-label"  for="src-zip"><span id="zone-division">{{zone_division_name}}</span><span class="star">*</span></label>
+                        <div class="col-md-8">
+                           <input id="src-zip" name="zip" type="text" placeholder="{{zone_division_name}}" class="form-control input-md" >
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-phone">Phone</label>
+                        <div class="col-md-8">
+                           <input id="src-phone" name="phone" type="text" placeholder="Preferably Cell Phone" class="form-control input-md">
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-fax">Fax</label>
+                        <div class="col-md-8">
+                           <input id="src-fax" name="fax" type="text" placeholder="fax Number" class="form-control input-md">
+                        </div>
+                     </div>
+                     <div class="row form-group">
+                        <label class="col-md-4 control-label" for="src-email">E-Mail</label>
+                        <div class="col-md-8">
+                           <input id="src-email" name="fax" type="email" placeholder="E-Mail" class="form-control input-md">
+                        </div>
+                     </div>
+                  </fieldset>
+               </div>
+               <!--<div class="col-md-6 from-address-map">
+                  <div class="delivery-from-address-map" id="source-map"></div>
+                  </div> -->
             </div>
-			<div class="tab-pane delivery-report" role="tabpanel" id="step4">
-                <dl class="row">
-                    <dt class="col-sm-3">Service Type</dt>
-                    <dd class="col-sm-9 delivery-type">$delivery type</dd>
-
-                    <dt class="col-sm-3">Pickup Address</dt>
-                    <dd class="col-sm-9 source-address">$source address</dd>
-
-                    <dt class="col-sm-3">Package(s)</dt>
-                    <dd class="col-sm-9 packages">
-
-                    </dd>
-                </dl>
-                <button  class="btn btn-dark float-right submit-delivery" type="button">Request Delivery</button>
-                <!-- <button  class="btn btn-light float-right submit-delivery" type="button">Request & Pay for Delivery</button> -->
-			</div>
-			<div class="clearfix"></div>
-		</div>
-
-	</div>
+            <button type="button" class="btn btn-light float-right step-two-btn">Next Step</button></li>
+         </div>
+         <div class="tab-pane" role="tabpanel" id="step3">
+            <div class="row">
+               <div class="col-md-6">
+                  <div class="container">
+                     <div class="row form-group selective-option package-chooser">
+                        {% for pt in package_templates %}
+                        {% if pt.size_type == "t" or pt.size_type == "m" %}
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 package-template" data-toggle="modal" data-target="#package-template-modal">
+                           <div class="selective-option selective-option-item">
+                              <div class="col-xs-8 col-sm-8 col-md-12 col-lg-12">
+                                 <span class="title template-title">{{ pt.title }}</span>
+                                 <span class="description">{{ pt.description }}</span>
+                                 <input type="radio" name="package-template" value="{{ pt.pk }}" class="selective-option-radio">
+                              </div>
+                              <div class="clear"></div>
+                           </div>
+                        </div>
+                        {% elif pt.size_type == "c" %}
+                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 package-template">
+                           <div class="selective-option selective-option-item">
+                              <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                 <span class="title template-title">{{ pt.title }}</span>
+                                 <span class="description">
+                                    <div class="input-group">
+                                       <span class="input-group-addon">Weight</span>
+                                       <input id="custom-size-weight" type="text" class="form-control " name="package-weight">
+                                       <select id="custom-package-wight" class="form-control">
+                                          <option value="kg">Kilogram</option>
+                                          <option value="lb">Pounds</option>
+                                       </select>
+                                    </div>
+                                    <label id="label-dimensions">Dimensions <span id="dimensions">( in centimetres )</span></label>
+                                    <div class="input-group">
+                                       <span class="input-group-addon">Width</span>
+                                       <input id="custom-size-width" type="text" class="form-control" name="package-width" placeholder="">
+                                    </div>
+                                    <div class="input-group">
+                                       <span class="input-group-addon">Height</span>
+                                       <input id="custom-size-height" type="text" class="form-control" name="package-height" placeholder="">
+                                    </div>
+                                    <div class="input-group">
+                                       <span class="input-group-addon">Length</span>
+                                       <input id="custom-size-length" type="text" class="form-control" name="package-length" placeholder="">
+                                    </div>
+                                    <div class="col-md-12 text-center">
+                                       <button id="custom-size-submit-btn" type="button" class="btn btn-primary my-1 disabled"  data-target="#package-template-modal">Next</button>
+                                    </div>
+                                    <div class="show-error-msg">Please make sure you are have entered numeric values greater than zero in all feilds!</div>
+                                 </span>
+                                 <input type="radio" name="package-template" value="{{ pt.pk }}" class="selective-option-radio">
+                              </div>
+                              <div class="clear"></div>
+                           </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                     </div>
+                  </div>
+               </div>
+               <div  id="package-container" class="col-md-6">
+                  <h3 class="order-steps-header">Your Delivery Requests</h3>
+                  <hr/>
+                  <!-- Place for dynamically inserted ".chosen packages" -->
+               </div>
+            </div>
+            <button type="button" class="btn btn-light float-right step-three-btn">Next Step</button></li>
+         </div>
+         <div class="tab-pane delivery-report" role="tabpanel" id="step4">
+            <dl class="row">
+               <dt class="col-sm-3">Service Type</dt>
+               <dd class="col-sm-9 delivery-type">$delivery type</dd>
+               <dt class="col-sm-3">Pickup Address</dt>
+               <dd class="col-sm-9 source-address">$source address</dd>
+               <dt class="col-sm-3">Package(s)</dt>
+               <dd class="col-sm-9 packages">
+               </dd>
+            </dl>
+            <button  class="btn btn-dark float-right submit-delivery" type="button">Request Delivery</button>
+            <!-- <button  class="btn btn-light float-right submit-delivery" type="button">Request & Pay for Delivery</button> -->
+         </div>
+         <div class="clearfix"></div>
+      </div>
+   </div>
 </form>
-
 {% endblock %}
-
-
-

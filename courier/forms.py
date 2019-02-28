@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.forms import widgets, Textarea, TextInput, EmailField
-from .models import AddressBook, Address
+from .models import AddressBook, Address, Country, Province, City
 
 
 class TrackItemForm(forms.Form):
@@ -15,10 +15,10 @@ class TrackItemForm(forms.Form):
 
 
 class AddressForm(forms.ModelForm):
+
 	class Meta:
 		model = Address
 		fields = (
-			'state',
 			'city',
 			'zip',
 			'address1',
@@ -28,8 +28,6 @@ class AddressForm(forms.ModelForm):
 			'email'
 		)
 		widgets = {
-			"state": TextInput(attrs={'placeholder': "state", 'required': True}),
-			"city": TextInput(attrs={'placeholder': "city", 'required': True}),
 			"zip": TextInput(attrs={'placeholder': "zip", 'required': True}),
 			"address1": Textarea(attrs={'cols': 80, 'rows': 2, 'required': True, 'placeholder': 'Street address, P.O. box, company name, c/o'}),
 			"address2": Textarea(attrs={'cols': 80, 'rows': 2, 'placeholder': 'Apartment, suite , unit, building, floor, etc.'}),

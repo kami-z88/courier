@@ -53,12 +53,29 @@ body {
     .navbar-brand-small {
         display: block;
     }
+    .minimal-logo {
+        width:70px;
+    }
     .navbar-brand {
         display: none;
+        width:50%;
     }
 }
 
 button:disabled:hover {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+.site-logo {
+    width:100px;
+    top: 12px;
+}
+
+.large-logo {
+    margin:auto;
+}
+
+.mr-auto {
+    margin-left:auto;
 }

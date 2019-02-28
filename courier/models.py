@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
+from settings.models import ZoneSystem
 from django.utils import timezone, translation, six
 from django.utils.translation import ugettext_lazy as _
 import os
@@ -15,6 +16,7 @@ def get_courier_avatar_photo_path(instance, filename):
 	name, ext = os.path.splitext(filename)
 	filename = 'avatar{}'.format(ext)
 	return "courier_avatar/{0}".format(filename)
+
 
 def get_dispatcher_avatar_photo_path(instance, filename):
 	name, ext = os.path.splitext(filename)
@@ -124,7 +126,6 @@ class Delivery(models.Model):
 		('os', 'On site payment'), # Not payed, will be payed when giving package to courier
 	)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-	tracking_id = models.CharField(_('Tracking Code'), max_length=120, blank=True, null=True)
 	request_time_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 	request_time_last_update = models.DateTimeField(auto_now=True, blank=False, null=False)
 	delivery_time = models.DateTimeField(blank=True, null=True)
@@ -141,31 +142,12 @@ class Delivery(models.Model):
 	def __str__(self):
 		return "Delivery {}({})".format(self.id, self.status)
 
-	def save(self, *args, **kwargs):
-		import random
-		from django.contrib.sites.models import Site
-		from settings.models import SiteSettings
-
-		current_site = Site.objects.get_current()
-		site_settings = SiteSettings.objects.get(site=current_site)
-		while(True):
-			random_id = random.randint(10000000, 99999999)  # 8 digit random number
-			prefix = site_settings.tracking_id_prefix if site_settings.tracking_id_prefix else ""
-			suffix = site_settings.tracking_id_suffix if site_settings.tracking_id_suffix else ""
-			tracking_id = "{}{}{}".format(prefix, random_id, suffix)
-			try:
-				delivery = Delivery.objects.get(tracking_id=tracking_id)
-			except:
-				break
-
-		self.tracking_id = tracking_id
-		super(Delivery, self).save(*args, **kwargs)
-
 	def get_user_proper_name(self):
 		if self.user.get_full_name():
 			return self.user.get_full_name()
 		else:
 			return self.user.username
+
 
 class PackageTemplate(models.Model):
 	SIZE_TYPES = (
@@ -203,6 +185,7 @@ class Package(models.Model):
 	name = models.CharField(_('Package Name'), default="Package", max_length=120, blank=True, null=True)
 	contact = models.CharField(_('Contact\'s name'), max_length=120, blank=True, null=True)
 	to_address = models.ForeignKey('Address', related_name='to_address', on_delete=models.CASCADE,)
+	description = models.CharField(_('Description'), max_length=100, blank=True, null=True )
 	template = models.ForeignKey(PackageTemplate, on_delete=models.CASCADE, blank=True, null=True)
 	status = models.CharField(_('Status'), max_length=2, default='wp', choices=STATUS_CHOICES)
 	weight = models.CharField(_('Package Weight'), max_length=120, blank=True, null=True)
@@ -212,6 +195,8 @@ class Package(models.Model):
 	length = models.CharField(_('Package length'), max_length=120, blank=True, null=True)
 	comments = models.ManyToManyField('Comment')
 	signature = models.BooleanField(default=False)
+	tracking_code_sharing_sms = models.BooleanField(default=False)
+	tracking_code_sharing_email = models.BooleanField(default=False)
 	signer_name = models.CharField(_('Signer Name'), max_length=120, blank=True, null=True)
 	signer_phone = models.CharField(_('Signer Phone'), max_length=15, blank=True, null=True)
 	pickup_time = models.DateTimeField(blank=True, null=True)
@@ -241,9 +226,31 @@ class Package(models.Model):
 		super(Package, self).save(*args, **kwargs)
 
 
+class Country(models.Model):
+	name = models.CharField(_('Country'), max_length=100, blank=False, null=False)
+
+	def __str__(self):
+		return self.name
+
+
+class Province(models.Model):
+	name = models.CharField(_('Province'), max_length=100, blank=False, null=False)
+	country = models.ForeignKey(Country, on_delete=models.CASCADE, blank=False, null=False)
+
+	def __str__(self):
+		return "{} | {}".format(self.name.capitalize(), self.country.name.capitalize())
+
+
+class City(models.Model):
+	name = models.CharField(_('City'), max_length=100, blank=False, null=False)
+	province = models.ForeignKey(Province, on_delete=models.CASCADE, blank=False, null=False)
+
+	def __str__(self):
+		return self.name
+
+
 class Address(models.Model):
-	state = models.CharField(_('State'), max_length=256, blank=True, null=True)
-	city = models.CharField(_('City'), max_length=256, blank=True, null=True)
+	city = models.ForeignKey(City, on_delete=models.CASCADE, default=1)
 	zip = models.CharField(_('ZIP'), max_length=32, blank=False, null=False)
 	address1 = models.TextField(_('Address 1'), max_length=256, blank=False, null=False)
 	address2 = models.TextField(_('Address 2'), max_length=256, blank=True, null=True)
@@ -253,19 +260,39 @@ class Address(models.Model):
 	hash = models.CharField(_('Hash Address'), max_length=32, blank=True, null=True)
 
 	def get_one_line(self):
-		return "{}, {}, {}, {}, {}, Phone:{}, Fax:{}".format(self.address2, self.address1, self.city, self.state, self.zip, self.phone, self.fax)
+		return "{}, {}, {}, {}, {}, {}".format(self.address2, self.address1, self.city.name.capitalize(),
+			self.get_province().capitalize(), self.get_country().capitalize(), self.get_zone_system())
 
 	def get_one_line_hash(self):
-		one_line = "{}, {}, {}, {}, {}, {}, {}, {}".format(self.phone, self.fax, self.email, self.address2, self.address1, self.city, self.state, self.zip)
+		one_line = "{}, {}, {}, {}".format(self.get_one_line(), self.phone, self.fax, self.email)
 		from hashlib import md5
 		return md5(one_line.encode('utf-8')).hexdigest()
 
 	def __str__(self):
 		return self.get_one_line()
 
+	def get_province(self, arg=""):
+		province = Province.objects.get(city=self.city)
+		if arg == "obj":
+			return province  # return object if 'obj' passed as argument
+		else:
+			return province.name
+
+	def get_country(self, arg=""):
+		country = Country.objects.get(province=self.get_province("obj"))
+		if arg == "obj":
+			return country  # return object if 'obj' passed as argument
+		else:
+			return country.name
+
+	def get_zone_system(self):
+		zone_system = ZoneSystem.objects.all().first()
+		if zone_system:
+			return "{}:{}".format(zone_system.get_name_display(), self.zip)
+		else:
+			return "ffff"
+
 	def save(self, *args, **kwargs):
-		if self.state: self.state = self.state.strip()
-		if self.city: self.city = self.city.strip()
 		if self.zip: self.zip = self.zip.strip()
 		if self.address1: self.address1 = self.address1.strip()
 		if self.address2: self.address2 = self.address2.strip()
@@ -287,6 +314,9 @@ class AddressBook(models.Model):
 	title = models.CharField(_('Title'), max_length=256, blank=True, null=True)
 	used_for = models.CharField(_('Used For'), max_length=1, default='s', choices=USED_FOR)
 
+	class Meta:
+		unique_together = ('user', 'title');
+
 	def __str__(self):
 		if self.user.get_full_name():
 			name = self.user.get_full_name()
@@ -307,3 +337,95 @@ class Comment(models.Model):
 	for_reject = models.BooleanField(default=False)
 	message = models.CharField(_('Message'), max_length=100, blank=False, null=False )
 	time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+
+class SingletonModel(models.Model):
+	class Meta:
+		abstract = True
+
+	def save(self, *args, **kwargs):
+		self.pk = 1
+		super(SingletonModel, self).save(*args, **kwargs)
+
+	def delete(self, *args, **kwargs):
+		pass
+
+	@classmethod
+	def load(cls):
+		obj, created = cls.objects.get_or_create(pk=1)
+		return obj
+
+
+class ControlPanel(SingletonModel):
+	auto_dispatch = models.BooleanField(default=False)
+	auto_dispatch_courier = models.ForeignKey(Courier, on_delete=models.SET_NULL, blank=True, null=True)
+	new_task_for_dispatcher = models.BooleanField(default=False)
+	new_task_for_courier = models.CharField(max_length=20, blank=True, default=",", null=False)
+
+	def set_auto_dispatch(self, courier_id):
+		try:
+			courier = Courier.objects.get(id=courier_id)
+			self.auto_dispatch = True
+			self.auto_dispatch_courier = courier
+			self.save()
+			return True
+		except Courier.DoesNotExist:
+			return False
+
+	def unset_auto_dispatch(self):
+		self.auto_dispatch = False
+		self.auto_dispatch_courier = None
+		self.save()
+
+	def is_auto_dispatch(self):
+		return self.auto_dispatch
+
+	def set_new_task_for_dispatcher(self):
+		self.new_task_for_dispatcher = True
+		self.save()
+
+	def unset_new_task_for_dispatcher(self):
+		self.new_task_for_dispatcher = False
+		self.save()
+
+	def has_dispatcher_new_task(self):
+		return self.new_task_for_dispatcher
+
+	def set_new_task_for_courier(self, courier_id):
+		try:
+			courier = Courier.objects.get(id=courier_id)
+			if self.new_task_for_courier is None or self.new_task_for_courier == "":
+				self.new_task_for_courier = "," + str(courier_id)
+				self.save()
+			elif not self.has_courier_new_task(courier_id):
+				self.new_task_for_courier += "," + str(courier_id)
+				self.save()
+			else:
+				pass
+		except Courier.DoesNotExist:
+			pass
+
+	def unset_new_task_for_courier(self, courier_id):
+		courier_id = str(courier_id)
+		if self.new_task_for_courier is not None:
+			if str(self.new_task_for_courier).strip() != "":
+				id_list = self.new_task_for_courier.split(',')
+				if courier_id in id_list:
+					id_list.remove(courier_id)
+				self.new_task_for_courier = ','.join(id_list)
+				self.save()
+
+	def has_courier_new_task(self, courier_id):
+		if self.new_task_for_courier is not None:
+			if str(self.new_task_for_courier).strip() != "":
+				courier_id = str(courier_id)
+				id_list = str(self.new_task_for_courier).split(',')
+				if courier_id in id_list:
+					return True
+				else:
+					return False
+			else:
+				return False
+		else:
+			print("location 9")
+			return False

@@ -43,7 +43,7 @@ def site_logo(context):
 
 	if site_settings.logo:
 		from django.utils.safestring import mark_safe
-		return mark_safe('<img src="{}"/>'.format(site_settings.logo.url))
+		return mark_safe('<img class="site-logo" src="{}"/>'.format(site_settings.logo.url))
 	else:
 		return site_settings.brand_name
 
@@ -58,7 +58,7 @@ def site_large_logo(context):
 
 	if site_settings.logo:
 		from django.utils.safestring import mark_safe
-		return mark_safe('<img src="{}"/>'.format(site_settings.large_logo.url))
+		return mark_safe('<img class="large-logo" src="{}"/>'.format(site_settings.large_logo.url))
 	else:
 		return site_settings.brand_name
 
@@ -73,7 +73,7 @@ def site_minimal_logo(context):
 
 	if site_settings.logo:
 		from django.utils.safestring import mark_safe
-		return mark_safe('<img src="{}"/>'.format(site_settings.minimal_logo.url))
+		return mark_safe('<img class="minimal-logo" src="{}"/>'.format(site_settings.minimal_logo.url))
 	else:
 		return site_settings.brand_name
 

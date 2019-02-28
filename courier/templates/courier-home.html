@@ -12,6 +12,15 @@
 {% block footer %}<script src="{% static 'js/jquery.min.js' %}"></script> {% endblock %}
 {% block footer-after %}<script src="{% static 'js/courier.js' %}"></script> {% endblock %}
 {% block content %}
-    coureir home page
+ <div class="container">
+	<div class="row">
+		<div class="col-md-6 wrapper">
+            <div class="row">
+                <a href="{% url 'courier_tasks' %}" class="middle-menu"><span>Tasks</span></a>
+                <a href="{% url 'courier_delivered' %}" class="middle-menu"><span>Delivered Requests</span></a>
+            </div>
+        </div>
+	</div>
+</div>
 {% endblock %}
 

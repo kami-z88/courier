@@ -60,7 +60,15 @@
 
 {% block content %}
 <div class="container">
-
+	<div class="row">
+		<div class="col-md-6 wrapper">
+            <div class="row">
+                <a href="{% url 'user_delivery' %}" class="middle-menu"><span>Request Delivery Service</span></a>
+                <a href="{% url 'user_tracking' %}" class="middle-menu"><span>Tracking</span></a>
+                <a href="{% url 'user_address_book' %}" class="middle-menu"><span>My Address Book</span></a>
+            </div>
+        </div>
+	</div>
 </div>
 {% endblock %}
 
