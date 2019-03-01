@@ -11,8 +11,8 @@ from django.db.models import Q
 from django.db import IntegrityError
 
 
-
 cp = ControlPanel.load()
+
 
 def home_page(request):
 	context = {}
@@ -459,8 +459,9 @@ def set_delivery_rejection_reason(request):
 	delivery.dispatcher = dispatcher
 	delivery.save()
 	new_comment = Comment()
-	new_comment.actor = get_actor_letter(request)
+	new_comment.set_actor(request)
 	new_comment.user = request.user
+	new_comment.reason = 'dr'
 	new_comment.message = comment_text
 	new_comment.for_reject = True
 	new_comment.save()
@@ -486,6 +487,10 @@ def set_auto_dispatch_on(request):
 
 def set_auto_dispatch_off(request):
 	cp.unset_auto_dispatch()
+	data = {}
+	data['result'] = 'success' if not cp.auto_dispatch else 'failure'
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
 
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -502,8 +507,9 @@ def courier_home(request):
 
 
 def courier_tasks(request):
+	courier = Courier.objects.get(user=request.user)
 	context = {
-		'courier': 'tasks'
+		'courier': courier
 	}
 	return render(request, "courier-tasks.html", context)
 
@@ -531,8 +537,10 @@ def courier_tasks_custom_sort(request):
 
 def courier_tasks_should_pickup(request):
 	deliveries = Delivery.objects.filter(courier=Courier.objects.get(user=request.user), status='wc')
+	courier = Courier.objects.get(user=request.user)
 	context = {
-		'deliveries': deliveries
+		'deliveries': deliveries,
+		'courier': courier
 	}
 	return render(request, "courier-tasks-should-pickup.html", context)
 
@@ -549,6 +557,7 @@ def courier_tasks_pickedup(request):
 	context = {
 		'pickedup_deliveries': deliveries,
 		'pickedup_count': pickedup_count,
+		'courier': courier,
 	}
 	return render(request, "courier-tasks-pickedup.html", context)
 
@@ -560,7 +569,8 @@ def courier_tasks_rejected_pickup(request):
 	courier = Courier.objects.get(user=request.user)
 	deliveries = Delivery.objects.filter(courier=courier)
 	context = {
-		'deliveries': deliveries
+		'deliveries': deliveries,
+		'courier': courier
 	}
 	return render(request, "courier-tasks-reject-pickup.html", context)
 
@@ -568,36 +578,9 @@ def courier_tasks_rejected_pickup(request):
 def courier_target_task(request):
 	courier = Courier.objects.get(user=request.user)
 	deliveries = Delivery.objects.filter(Q(status='ap') | Q(status='pc') | Q(status='pp'), courier=courier)
-	package_statistics = {}
-	target_items_count = 0
-	for delivery in deliveries:
-		if delivery.status == 'ap':
-			target_items_count += 1
-		unhandled = 0
-		picked = 0
-		rejected = 0
-		packages = Package.objects.filter(delivery=delivery)
-		total = packages.count()
-		for package in packages:
-			if package.status == 'ah':
-				target_items_count += 1
-			status = package.status
-			if status == 'wp':
-				unhandled += 1
-			elif status == 'pc':
-				picked += 1
-			elif status == 'rc':
-				rejected += 1
-		package_statistics[delivery.id] = {'total': total, 'unhandled': unhandled, 'picked': picked, 'rejected': rejected}
-	try:
-		packages = packages
-	except UnboundLocalError:
-		packages = ""
 	context = {
-		'target_pickup_deliveries': deliveries,
-		'packages': packages,
-		'package_statistics': package_statistics,
-		'target_items_count': target_items_count
+		'deliveries': deliveries,
+		'courier_has_target_item': courier.has_item_in_target_tasks(),
 	}
 	return render(request, "courier-target-task.html", context)
 
@@ -684,8 +667,9 @@ def reject_package_pickup(request):
 	package.save()
 	comment = Comment()
 	comment.user = request.user
-	comment.actor = get_actor_letter(request)
+	comment.set_actor(request)
 	comment.for_reject = True
+	comment.reason = 'pr'
 	comment.message = rejection_reason
 	comment.save()
 	package.comments.add(comment)
@@ -700,7 +684,7 @@ def reject_package_pickup(request):
 def undo_reject_package_pickup(requst):
 	comment_id = requst.GET.get('commentId', None)
 	package_id = requst.GET.get('packageId', None)
-	result = Comment.objects.get(id=comment_id).delete()
+	Comment.objects.get(id=comment_id).delete()
 	package = Package.objects.get(id=package_id)
 	package.status = 'wp'
 	package.save()
@@ -755,7 +739,7 @@ def carry_back_package(request):
 	package.save()
 	comment = Comment()
 	comment.user = request.user
-	comment.actor = get_actor_letter(request)
+	comment.set_actor(request)
 	comment.message = comment_text
 	comment.save()
 	package.comments.add(comment)
@@ -820,18 +804,6 @@ def get_set_address(address_data, user, usage):
 		address_book.save()
 		package_address = address
 	return package_address
-
-
-def get_actor_letter(request):
-	if request.user.is_authenticated:
-		if Courier.objects.filter(user=request.user).exists():
-			return 'c'
-		elif Dispatcher.objects.filter(user=request.user).exists():
-			return 'd'
-		else:
-			return 'u'
-	else:
-		return 'v'
 
 
 def sync_delivery_packages_status(delivery_id):

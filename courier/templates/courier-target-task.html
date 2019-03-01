@@ -115,13 +115,13 @@
         <span  class="col-md-12 "></span>
     </div>
     <div class="row">
-        {% for delivery in target_pickup_deliveries %}
+        {% for delivery in deliveries %}
             <!-- .................... Section_start: target task is pickup task ............ -->
-            {% if delivery.status == "ap" %}
+            {% if delivery.status == 'ap' %}
                 <div class="row delivery-wrapper" draggable="true" data-dlvry-id="{{ delivery.id }}" ondragstart="drag_task(event)">
                     <span class="col-sm-3">
                         <button class="btn btn-default withdraw" data-toggle="modal" data-target="#withdrawTargetTask" value="delivery:{{ delivery.id }}"><i class="fas fa-undo"></i></button>
-                        {% if package_statistics|get_item:delivery.id|get_item:"unhandled" == 0 %}
+                        {% if delivery.get_unhandled_packages.count == 0 %}
                         <button class="btn btn-success pickup-done" value="{{ delivery.id }}">Done with this request</button>
                         {% endif %}
                     </span>
@@ -130,13 +130,13 @@
                     <span class="col-sm-2"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
                     <span class="col-sm-12 address"><b>From Address:</b>&nbsp;{{ delivery.from_address }}</span>
                         <hr class="separator"/>
-                    <span class="col-sm-2">Total Packages:<span class="badge badge-info">{{ packages.count }}</span></span>
-                        <span class="col-sm-2">Unhandled:<span class="badge badge-default">{{ package_statistics|get_item:delivery.id|get_item:"unhandled"}} </span></span>
-                        <span class="col-sm-2">Picked Up:<span class="badge badge-success">{{ package_statistics|get_item:delivery.id|get_item:"picked"}}</span></span>
-                        <span class="col-sm-2">Rejected:<span class="badge badge-danger">{{ package_statistics|get_item:delivery.id|get_item:"rejected"}}</span></span>
+                    <span class="col-sm-2">Total Packages:<span class="badge badge-info">{{ delivery.package_set.all.count }}</span></span>
+                        <span class="col-sm-2">Unhandled:<span class="badge badge-default">{{ delivery.get_unhandled_packages.count}} </span></span>
+                        <span class="col-sm-2">Picked Up:<span class="badge badge-success">{{ delivery.get_picked_packages.count}}</span></span>
+                        <span class="col-sm-2">Rejected:<span class="badge badge-danger">{{ delivery.get_rejected_packages.count}}</span></span>
                         <span class="col-sm-2"><!--Total service price--></span>
                         <span class="col-sm-2"><!--payment info--></span>
-                        {% for package in packages.all %}
+                        {% for package in delivery.package_set.all %}
                         <div class="row package-wrapper">
                             <span class="col-sm-4">
                                 {% if package.status == "rc" %}
@@ -145,10 +145,10 @@
                                     <i  class="fas fa-undo" ></i>&nbsp;Reject
                                 </button>
                                 {% elif package.status == "pc" %}
-                                <button class="btn do-undo-pickup" onclick="do_undo_pickup({{ package.id }},'undo')"><i class="fas fa-undo"></i>&nbsp;Pick up</button>
+                                <button class="btn do-undo-pickup" value="{{ package.id }},undo"><i class="fas fa-undo"></i>&nbsp;Pick up</button>
                                 <span class="place-holder"><a class="text">PICKED UP</a></span>
                                 {% else %}
-                                <button class="btn do-undo-pickup" onclick="do_undo_pickup({{ package.id }},'do')"><i class="fas fa-upload"></i>&nbsp;Pick up</button>
+                                <button class="btn do-undo-pickup" value="{{ package.id }},do"><i class="fas fa-upload"></i>&nbsp;Pick up</button>
                                 <button class="btn reject-pickup" data-toggle="modal" data-target="#rejectPackageMolal" value="{{ package.id }}">
                                     <i  class="fas fa-ban" ></i>&nbsp;Reject
                                 </button>
@@ -176,7 +176,7 @@
             <!-- .................... Section_start: target task is handover task ............ -->
             {%  for package in delivery.package_set.all %}
                 {% if package.status == "ah" %}
-                    <div class="row package-wrapper" draggable="true" data-pckg-id="{{ package.id }}" ondragstart="drag_task(event)">
+                    <div class="row package-wrapper handover" draggable="true" data-pckg-id="{{ package.id }}" ondragstart="drag_task(event)">
                         <span class="col-sm-4">
                             <button class="btn btn-default withdraw" data-toggle="modal" data-target="#withdrawTargetTask" value="package:{{ package.id }}"><i class="fas fa-undo"></i></button>
                             <button class="btn btn-info action" data-toggle="modal" data-target="#carryBackMolal" onclick='set_modal_btn_value("#do-carry-back" ,{{ package.id }})'>Carry Back</button>
@@ -205,7 +205,7 @@
             {% endfor %}
             <!-- .................... Section_ends: target task is handover task ............ -->
         {% endfor %}
-        {% if target_items_count == 0 %}
+        {% if not courier_has_target_item %}
          <div class="row delivery-wrapper">
             <span style="margin:auto;">No target task</span>
          </div>

@@ -69,7 +69,26 @@ class Dispatcher(models.Model):
 class Courier(models.Model):
 	user = models.OneToOneField(User, related_name='courier', on_delete=models.CASCADE)
 	avatar = models.ImageField(_('If you chose "Upload Image" as avatar option this image will be used.'),
-							   upload_to=get_courier_avatar_photo_path, blank=True, null=True)
+	upload_to=get_courier_avatar_photo_path, blank=True, null=True)
+	def has_item_in_target_tasks(self):
+		has_item = False
+		from django.db.models import Q
+		deliveries = Delivery.objects.filter(Q(status='ap') | Q(status='pc') | Q(status='pp'), courier=self)
+		for delivery in deliveries:
+			has_item = True if delivery.status == "ap" else  has_item
+			for package in delivery.package_set.all():
+				has_item = True if package.status == "ah" else has_item
+		return has_item
+
+	def deliveries_to_pickup(self):
+		return Delivery.objects.filter(status='ap', courier=self)
+
+	def packages_to_handover(self):
+		delivery_ids = set()
+		deliveries = Delivery.objects.filter(courier=self)
+		for delivery in deliveries:
+			delivery_ids.add(delivery.id)
+		return Package.objects.filter(delivery__in=delivery_ids, status='ah')
 
 
 class Payment(models.Model):
@@ -94,6 +113,7 @@ class OnlinePayment(models.Model):
 	meta = models.TextField(blank=False, null=False)
 	def __str__(self):
 		return self.value
+
 
 class DepositCharge(models.Model):
 	user = models.OneToOneField('auth.user', verbose_name=_('user'), on_delete=models.CASCADE,)
@@ -141,6 +161,15 @@ class Delivery(models.Model):
 
 	def __str__(self):
 		return "Delivery {}({})".format(self.id, self.status)
+
+	def get_unhandled_packages(self):
+		return Package.objects.filter(delivery=self, status='wp')
+
+	def get_picked_packages(self):
+		return Package.objects.filter(delivery=self, status='pc')
+
+	def get_rejected_packages(self):
+		return Package.objects.filter(delivery=self, status='rc')
 
 	def get_user_proper_name(self):
 		if self.user.get_full_name():
@@ -332,12 +361,28 @@ class Comment(models.Model):
 		('d', 'dispatcher'),
 		('c', 'Courier'),
 	)
+	REASON = (
+		('pr', 'Pickup Rejection'),
+		('dr', 'Delivery Rejection'),
+		('mi', 'More information'),
+	)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 	actor = models.CharField(_('Actor'), max_length=1, choices=USER_TYPE)
 	for_reject = models.BooleanField(default=False)
+	reason = models.CharField(_('Reason'), max_length=2, default="", choices=REASON)
 	message = models.CharField(_('Message'), max_length=100, blank=False, null=False )
 	time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
+	def set_actor(self, request):
+		if request.user.is_authenticated:
+			if request.user.is_courier:
+				self.actor = 'c'
+			elif request.user.is_dispatcher:
+				self.actor = 'd'
+			else:
+				self.actor = 'u'
+		else:
+			self.actor = 'v'
 
 class SingletonModel(models.Model):
 	class Meta:

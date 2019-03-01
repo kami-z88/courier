@@ -113,6 +113,11 @@ hr {
     box-shadow: 5px 5px 10px #888888;
 }
 
+.package-wrapper.handover{
+    background-color:#fffbac;
+    margin-bottom:1em;
+}
+
 h6 {
     margin-left:1em;
 }
@@ -339,3 +344,25 @@ span.place-holder > .text {
     vertical-align:middle;
     padding:0;
     margin:0;
+}
+
+.badge.target-pickup {
+    background-color:#97D7EAB3;
+    color:#000000;
+    position:absolute;
+    right:12px;
+    top:-10px;
+    border-radius:40%;
+    padding:5px;
+    }
+
+.badge.target-handover {
+    background-color:#FFF864CC;
+    color:#000000;
+    position:absolute;
+    right:35px;
+    top:-10px;
+    border-radius:40%;
+    padding:5px;
+}
+

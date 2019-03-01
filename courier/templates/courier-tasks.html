@@ -29,6 +29,8 @@
             <a class="radio-inline tt drop-target-task"  style="width:152px;" href="{% url 'target_task' %}" ondragover="allowDrop(event)" ondrop="put_task_on_target()">
                 <input type="radio" name="display-order" value=""><span style="margin-left:4px"><i class="fas fa-crosshairs"></i>Target Tasks</span>
             </a>
+            <span class="badge target-pickup">{{ courier.deliveries_to_pickup.count }}</span>
+            <span class="badge target-handover">{{ courier.packages_to_handover.count }}</span>
             <button class="btn  expand-collapse map hidden"><i class="fas fa-expand"></i><b id="text-map">Map</b></button>
         </div>
     </div>

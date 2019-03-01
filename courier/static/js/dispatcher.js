@@ -140,6 +140,11 @@ $("#auto-dispatch-check").on('click', function(){
         $.ajax({
             url:'/dispatcher/ajax/set-auto-dispatch-off/',
             type: 'Get',
+            success: function(data){
+                if (data.result == "success"){
+                    console.log("Auto dispatch turned off")
+                }
+            }
         });
     }
 })

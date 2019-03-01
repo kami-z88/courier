@@ -7,6 +7,21 @@
 {% block title %}Rejected requests{% endblock %}
 
 {% block second_row %}
+<!-- Modal: Confirm undo rejection of  packages-->
+<div class="modal fade" id="undoRejection" tabindex="-1" role="dialog" aria-labelledby="undoRejectionTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <span>Undo this pickup rejection?</span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="undo-pickup-reject" type="button" class="btn btn-primary" data-dismiss="modal" value="">Undo</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal:end -->
    <h3>Rejected requests</h3>
    <div class="row">
       <div class="table-responsive col-md-12">
@@ -24,10 +39,11 @@
                   {% for package in delivery.package_set.all %}
                      {% for comment in package.comments.all %}
                         <tr>
-                           <td>{{ delivery.user }}</td>
+                           <td>{{ delivery.user.get_full_name }}</td>
                            <td>{{ comment.message }}</td>
                            <td>{{ package.id }}</td>
                            <td><a href="#">details</a> </td>
+                           <td><button class="btn btn-success open-undo-rejection-modal" data-toggle="modal" data-target="#undoRejection" value="{{ package.id }}">undo</button></td>
                         </tr>
                      {% endfor %}
                   {% endfor %}

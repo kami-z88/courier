@@ -116,11 +116,16 @@ $(".drop-target-task").on('dragleave', function(){
     $(this).removeClass('drag-enter');
 })
 
-function put_task_on_target(){
-    if(task_goal == 'pickup'){
-        id = delivery_id_on_drag;
-    }else {
-        id = package_id_on_drag;
+$(".add-to-target").click(function(){
+    var value_str = $(this).val();
+    var id = value_str.split(",")[0];
+    var action = value_str.split(",")[1];
+    var task_goal = "";
+    if(action == 'pickup'){
+        task_goal = 'pickup';
+    }
+    else if(action == 'handover'){
+        task_goal = 'handover';
     }
     $.ajax({
         url:'/courier/ajax/put-task-on-target/',
@@ -141,7 +146,7 @@ function put_task_on_target(){
         },
 
     });
-}
+})
 
 // Hides and Shows map for target request on courier demand on "/courier/tasks/target-task" page
 $(".expand-collapse.map").click(function(){
@@ -243,7 +248,10 @@ $(".undo-reject-pickup").click(function(){
     });
 })
 
-function do_undo_pickup(package_id, action){
+$(".do-undo-pickup").click(function(){
+    var value_str = $(this).val();
+    var package_id = value_str.split(',')[0];
+    var action = value_str.split(',')[1];
     $.ajax({
         url:'/courier/ajax/do-undo-pickup/',
         type:'GET',
@@ -262,7 +270,7 @@ function do_undo_pickup(package_id, action){
 
         },
     });
-}
+})
 
 $(".pickup-done").click(function(){
     delivery_id = $(this).val();
@@ -345,4 +353,23 @@ $("#do-handover").click(function(){
 
     })
 
+})
+
+$(".open-undo-rejection-modal").click(function(){
+    var package_id = $(this).val();
+    $("#undo-pickup-reject").val(package_id);
+})
+
+$("#undo-pickup-reject").click(function(){
+     var package_id = $(this).val();
+     $.ajax({
+        url:'',
+        type:'Get',
+        data: {
+            'packageId': package_id,
+        },
+        success: function(){
+
+        },
+     });
 })

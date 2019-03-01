@@ -10,7 +10,7 @@
     {% for delivery in deliveries %}
     <div class="row delivery-wrapper" draggable="true" data-dlvry-id="{{ delivery.id }}" ondragstart="drag_task(event)">
         <span class="col-sm-3">
-            <button class="btn btn-default" onclick="put_task_on_target()">Add to target</button>
+            <button class="btn btn-default add-to-target" value="{{ delivery.id }},pickup">Add to target</button>
             <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
             <span class="badge badge-primary badge-pkg-count"> <i class="fas fa-cubes "><a class="package-count"> {{ delivery.package_set.count }}</a></i></span>
         </span>
@@ -19,6 +19,8 @@
         <span class="col-sm-2"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
         <span class="col-sm-12 address"><b>From Address:</b>&nbsp;{{ delivery.from_address }}</span>
         <div class="hideable hidden">
+            <span class="col-md-8"><b>Requester:&nbsp;</b>{{ delivery.user.get_full_name }}</span>
+            <span class="col-md-4"><b>Phone:&nbsp;</b>{{ delivery.from_address.phone }}</span>
             <hr class="separator"/>
             <h6>Package Numbers:&nbsp;{{ delivery.package_set.count }}</h6>
             {% for package in delivery.package_set.all %}
@@ -27,6 +29,9 @@
                 <span class="col-sm-4"><b>Sig. Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
                 <span class="col-sm-4">blank</span>
                 <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
+                <span class="col-sm-6"><b>Phone:</b>&nbsp;{{ package.to_address.phone }}</span>
+                <span class="col-sm-6"><b>Receiver Name:</b>&nbsp;</span>
+                <span class="col-sm-12"><b>Description:</b>&nbsp;{{ package.description }}</span>
             </div>
             {% endfor %}
         </div>
