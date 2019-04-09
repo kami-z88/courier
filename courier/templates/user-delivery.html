@@ -38,8 +38,8 @@
                   <div class="input-group mb-3">
                      <select class="custom-select" id="addressbook-for-destn">
                         <option value="0" selected>From Address Book ...</option>
-                        {% for addressBook_item in addressBook %}
-                        <option title="{{ addressBook_item.address }}"   value="{{ addressBook_item.id }}">{% if addressBook_item.title %}{{ addressBook_item.title | capfirst }}{% else %}{{ addressBook_item.address|truncatechars:24 }}{% endif %}</option>
+                        {% for address in addresses %}
+                        <option title="{{ address }}"   value="{{ address.id }}">{% if address.title %}{{ address.title | capfirst }}{% else %}{{ address|truncatechars:24 }}{% endif %}</option>
                         {% endfor %}
                      </select>
                      <div class="input-group-append">
@@ -52,7 +52,7 @@
             <div class="row form-group">
                <label class="col-md-4 control-label" for="destn-country">Country<span class="star">*</span></label>
                <div class="col-md-8">
-                  <select  class="custom-select col-md-6" id="destn-country">
+                  <select  class="custom-select address_item col-md-6" id="destn-country">
                      {% if countries.count > 1 %}
                      <option selected value="0">Select country ...</option>
                      {% endif %}
@@ -65,7 +65,7 @@
             <div class="row form-group">
                <label class="col-md-4 control-label" for="destn-province">Province<span class="star">*</span></label>
                <div class="col-md-8">
-                  <select class="custom-select col-md-6" id="destn-province">
+                  <select class="custom-select address_item col-md-6" id="destn-province">
                      {% if provinces.count > 1 or provinces == ""%}
                      <option selected value="0">Select province ...</option>
                      {% endif %}
@@ -78,7 +78,7 @@
             <div class="row form-group">
                <label class="col-md-4 control-label" for="destn-city">City/Town<span class="star">*</span></label>
                <div class="col-md-8">
-                  <select class="custom-select col-md-6" id="destn-city">
+                  <select class="custom-select address_item col-md-6" id="destn-city">
                      {% if cities.count > 1 or cities == "" %}
                      <option selected value="0">Select city ...</option>
                      {% endif %}
@@ -246,14 +246,14 @@
                         </div>
                         <div class="col-md-8">
                            <div class="input-group mb-3">
-                              <select class="custom-select" id="addressbook-for-src">
+                              <select class="custom-select" id="address-for-src">
                                  <option value="0" selected>From Address Book ...</option>
-                                 {% for addressBook_item in addressBook %}
-                                 <option title="{{ addressBook_item.address }}" value="{{ addressBook_item.id }}">
-                                    {% if addressBook_item.title %}
-                                       {{ addressBook_item.title | capfirst }}
+                                 {% for address in addresses %}
+                                 <option title="{{ address }}" value="{{ address.id }}">
+                                    {% if address.title %}
+                                       {{ address.title | capfirst }}
                                     {% else %}
-                                       {{ addressBook_item.address|truncatechars:24 }}
+                                       {{ address|truncatechars:24 }}
                                     {% endif %}
                                  </option>
                                  {% endfor %}
@@ -268,7 +268,7 @@
                      <div class="row form-group">
                         <label class="col-md-4 control-label" for="src-country">Country<span class="star">*</span></label>
                         <div class="col-md-8">
-                           <select  class="custom-select col-md-6" id="src-country">
+                           <select  class="custom-select address_item col-md-6" id="src-country">
                               {% if countries.count > 1 %}
                               <option selected value="0">Select country ...</option>
                               {% endif %}
@@ -281,7 +281,7 @@
                      <div class="row form-group">
                         <label class="col-md-4 control-label" for="src-province">Province<span class="star">*</span></label>
                         <div class="col-md-8">
-                           <select class="custom-select col-md-6" id="src-province">
+                           <select class="custom-select address_item col-md-6" id="src-province">
                               {% if provinces.count > 1 or provinces == ""%}
                               <option selected value="0">Select province ...</option>
                               {% endif %}
@@ -294,7 +294,7 @@
                      <div class="row form-group">
                         <label class="col-md-4 control-label" for="src-city">City/Town<span class="star">*</span></label>
                         <div class="col-md-8">
-                           <select class="custom-select col-md-6" id="src-city">
+                           <select class="custom-select address_item col-md-6" id="src-city">
                               {% if cities.count > 1 or cities == "" %}
                               <option selected value="0">Select city ...</option>
                               {% endif %}

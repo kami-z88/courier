@@ -1,36 +1,70 @@
 {% load thumbnail %}
-
-<div class="profile-sidebar">
-	{% thumbnail profile.avatar "256x256" crop="center" as im %}
-	<img src="{{ im.url }}" class="rounded-circle profile-avatar" width="{{ im.width }}" height="{{ im.height }}">
-	{% endthumbnail %}
-	<div class="profile-name">
+<!-- Modal: Delete image confirm -->
+<div class="modal fade" id="deleteImageModal" tabindex="-1" role="dialog" aria-labelledby="deleteImageModalTitle" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title">Delete Image</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <span>Remove this image?</span>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button id="do-delete-image" type="button" class="btn btn-danger" data-dismiss="modal" value="">Delete</button>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="row profile-sidebar">
+    <div class="col-md-12">
+    {% thumbnail profile.photo "200x200" crop="center" as im %}
+        <img src="{{ im.url }}" class="rounded-circle profile-photo">
+    {% endthumbnail %}
+    </div>
+	<div class="col-md-12 profile-name">
 		{% if profile.user.get_full_name %}
 		<h2 class="text-capitalize">
 			{{ profile.user.get_full_name }}
 		</h2>
-		<h4 class="text-lowercase"><a href="{% url 'profile' user.username %}">@{{ profile.user.username }}</a></h4>
 		{% else %}
-		<h4 class="text-lowercase"><a href="{% url 'profile' user.username %}">@{{ profile.user.username }}</a></h4>
+		<h4 class="text-lowercase"><a href="{% url 'profile' %}">@{{ profile.user.username }}</a></h4>
 		{% endif %}
 		<ul class="profile-usermenu">
-			<li class="{% if 'edit-profile' not in request.path and 'edit-account' not in request.path and 'edit-settings' not in request.path %}active{% endif %}">
-				<a href="{% url 'profile' user.username %}">
-				<i class="fas fa-user"></i>
-				Profile </a>
-			</li>
-			{% if request.user.is_superuser or request.user.username == username %}
-				<li class="{% if 'edit-profile' in request.path %}active{% endif %}">
-					<a href="{% url 'profile_edit' user.username %}">
-					<i class="fas fa-magic"></i>
-					 Edit Profile</a>
-				</li>
-				<li class="{% if 'edit-account' in request.path %}active{% endif %}">
-					<a href="{% url 'account_edit' user.username %}">
-					<i class="fas fa-pencil-square-o"></i>
-					 Edit Account</a>
-				</li>
-			{% endif %}
+
+            <li class="sidebar-menu top toggle-upload">
+                {% if profile.has_photo %}
+                Change Image
+                {% else %}
+                Upload Image
+                {% endif %}
+            </li>
+            <form action="{% url 'upload_profile_photo' %}" method="post" enctype="multipart/form-data">
+            <li class="sidebar-menu upload-container hidden">
+                {% csrf_token %}
+                <input type="file" name="photo" class="upload-image" accept="image/*">
+                <span class="upload-image-cover">
+                    <span class="upload-label">Choose File</span>
+                    <input type="text" id="upload-input" class="form-control" value="">
+                </span>
+                <input type="submit" class="btn btn-success btn-upload" value="Upload">
+            </li>
+            </form>
+            {% if profile.has_photo %}
+            <li class="sidebar-menu" id="open-delete-image-modal" value="{{ profile.id }}">Delete Image</li>
+            {% endif %}
+            <li class="sidebar-menu toggle-password">Change Password</li>
+            <li class="sidebar-menu password-container hidden">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="password" class="form-control pass1" placeholder="New password">
+                <input type="password" class="form-control pass2" placeholder="Confirm password">
+                <button class="btn btn-success btn-change-password" value="{{profile.user.id}}">Save</button>
+                <p class="error-message hidden"></p>
+                <p class="success-message hidden"></p>
+            </li>
 		</ul>
 	</div>
 </div>

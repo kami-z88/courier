@@ -74,7 +74,7 @@ class SinginForm(forms.Form):
 	"""
 	A custom form where the identification can be a e-mail address or username.
 	"""
-	identification = forms.CharField(label=_("Email or username"),
+	identification = forms.CharField(label=_("Email or Username"),
 									widget=forms.TextInput(attrs=attrs_dict),
 									max_length=75,
 									error_messages={'required': _("Either supply us with your email or username.")})
@@ -168,10 +168,18 @@ class EditAccountForm(forms.ModelForm):
 
 
 class EditProfileForm(forms.ModelForm):
-	"""
-	Form for editing user profiles
-	"""
 	class Meta:
 		model = Profile
-		fields = ('avatar_option', 'avatar', 'bio', 'email')
+		fields = ('email',)
 
+
+class UploadPhotoForm(forms.ModelForm):
+	class Meta:
+		model = Profile
+		fields = ('photo',)
+
+
+class EditUserForm(forms.ModelForm):
+	class Meta:
+		model = User
+		fields = ('first_name', 'last_name')

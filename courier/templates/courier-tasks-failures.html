@@ -1,0 +1,64 @@
+{% extends "courier-tasks.html" %}
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+
+{% block title %}Failures{% endblock %}
+
+{% block second_row %}
+<h4>failure task of last 24 hours:</h4>
+<hr />
+    {% for delivery in deliveries %}
+    {% if delivery.status == 'pf' %}
+    <div class="row failure-wrapper pickup">
+        <div class="col-md-2">
+            <b>Task:</b>&nbsp;<span>pick up</span>
+        </div>
+        <div class="col-md-2">
+            <b>Delivery ID:</b>&nbsp;<span>{{ delivery.id }}</span>
+        </div>
+        <div class="col-md-5">
+            <b>Reason:</b>&nbsp;
+            {% for comment in delivery.comments.all %}
+            {% if comment.reason == 'pf' %}
+            <span>{{ comment.message }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="col-md-1">
+            <a href="#" class="link-details">Details</a>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-default btn-action" value="{{delivery.id}}:delivery">Add To Target</button>
+        </div>
+    </div>
+    {% endif %}
+    {% for package in delivery.package_set.all %}
+    {% if package.status == 'hf' %}
+    <div class="row failure-wrapper handover">
+        <div class="col-md-2">
+            <b>Task:</b>&nbsp;<span>Handover</span>
+        </div>
+        <div class="col-md-2">
+            <b>Package ID:</b>&nbsp;<span>{{ package.id }}</span>
+        </div>
+        <div class="col-md-5">
+            <b>Reason:</b>&nbsp;
+            {% for comment in package.comments.all %}
+            {% if comment.reason == 'hf' %}
+            <span>{{ comment.message }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="col-md-1">
+            <a href="#" class="link-details">Details</a>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-default btn-action" value="{{package.id}}:package">Add To Target</button>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+{% endblock %}

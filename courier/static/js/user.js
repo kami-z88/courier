@@ -254,29 +254,34 @@ $('#custom-size-length').focus(function(){
     Get the address from user address book
 */
 $("#get-src-address").click(function(){
-    var addressBook_id = $("#addressbook-for-src").val();
+    var address_id = $("#address-for-src").val();
     $.ajax({
         url : '/user/ajax/get-user-address/',
         type : 'GET',
         data : {
-            'addressBook_id' : addressBook_id,
+            'address_id' : address_id,
         },
         success : function(data){
-            set_address_fields(data, 'src');
+            if(data.result == "success"){
+                set_address_fields(data, 'src');
+            }
+
         }
     });
 })
 
 $("#get-destn-address").click(function(){
-    var addressBook_id = $("#addressbook-for-destn").val();
+    var address_id = $("#addressbook-for-destn").val();
     $.ajax({
         url : '/user/ajax/get-user-address/',
         type : 'GET',
         data : {
-            'addressBook_id' : addressBook_id,
+            'address_id' : address_id,
         },
         success : function(data){
-            set_address_fields(data, 'destn');
+            if(data.result == "success"){
+                set_address_fields(data, 'destn');
+            }
         }
     });
 });
@@ -616,7 +621,7 @@ $(".round-tab").on("click",function(e){
 
 $("#clear-src-address").click(function(e){
     e.preventDefault();
-    $("#addressbook-for-src").val(0);
+    $("#address-for-src").val(0);
     clear_address_fields("src");
 })
 
@@ -640,15 +645,70 @@ $(".expand-collapse").click(function(){
     $(this).find(".btn-text").html(btn_text);
 })
 
+
 //#############################################################################
 //################# user-tracking.html ########################################
 //#############################################################################
 
-$(document).ready(function () {
-   // $('#tracking-table').DataTable();
-});
+$(".cancel-request").click(function(){
+    $("#do-cancel-request").val($(this).val());
+    $("#cancelRequestModal").modal("show");
+})
 
+$("#do-cancel-request").click(function(){
+    value = $(this).val();
+    delivery_id = value.split(":")[0]
+    action = value.split(":")[1]
+    $.ajax({
+        url: "/user/ajax/cancel-delivery-request/",
+        type: "Get",
+        data: {
+            "delivery_id": delivery_id
+        },
+        success: function(data){
+            if (data.result == "success"){
+                location.reload(true);
+            }
+        }
+    });
 
+})
+
+$(".cancel-action").click(function(){
+    value = $(this).val();
+    str_list = value.split('_');
+    action = str_list[str_list.length - 1];
+    if(action == "dispatch"){
+        action = "pick up";
+    }
+    $("#do-cancel-pickupHandover").val($(this).val());
+    $("#cancelPackageModal").find(".modal-title").html(capitalize(action) + " Cancellation");
+    $("#cancelPackageModal").find(".confirm-message").html("Do you want to cancel this package " + action);
+    $("#do-cancel-pickupHandover").html("Cancel " + capitalize(action));
+    $("#cancelPackageModal").modal("show");
+})
+
+$("#do-cancel-pickupHandover").click(function(){
+    value = $(this).val();
+    value_list = value.split(":");
+    package_id = value_list[0];
+    action = value_list[1];
+    $.ajax({
+        url: "/user/ajax/cancel-pickup-or-handover/",
+        type: "Get",
+        data: {
+            "package_id": package_id,
+            "action": action
+        },
+        success: function(data){
+            if(data.result == "success"){
+                location.reload(true);
+            } else{
+                alert("Failure!!")
+            }
+        }
+    });
+})
 
 
 //#############################################################################
@@ -656,7 +716,7 @@ $(document).ready(function () {
 //#############################################################################
 
 $('.confirm-delete').on('click', function(){
-    var addressBook_id = $(this).data("addressbookid");
+    var addressBook_id = $(this).data("addressid");
     var title = $("#title" + addressBook_id).text();
     $("#do-delete-address").val(addressBook_id);
     $("#address-to-delete-title").text(title);
@@ -669,7 +729,7 @@ $("#do-delete-address").click(function(){
         url:'/user/ajax/delete-user-address/',
         type: 'GET',
         data : {
-            'address_book_id': addressBook_id,
+            'address_id': addressBook_id,
         },
         success : function(data){
             if(data.result == "success"){
@@ -690,6 +750,7 @@ $("#addressModal").on("hidden.bs.modal", function () {
 
 
 $("#open-address-modal").click(function(){
+    $("ul.address").find(".highlighted").removeClass("highlighted");
     $("#do-add-update-address").html("Save");
     $("#do-add-update-address").val('add:0');
     clear_address_fields("address");
@@ -707,14 +768,15 @@ $("#do-add-update-address").click(function(){
 })
 
 $(".edit-address").click(function(){
+    $("ul.address").find(".highlighted").removeClass("highlighted");
     $("#do-add-update-address").html("Update");
-    var addressBook_id = $(this).data('addressbookid');
-    $("#do-add-update-address").val('update:' + addressBook_id );
+    var address_id = $(this).data('addressid');
+    $("#do-add-update-address").val('update:' + address_id );
     $.ajax({
         url : '/user/ajax/get-user-address/',
         type : 'GET',
         data : {
-            'addressBook_id' : addressBook_id,
+            'address_id' : address_id,
         },
         success : function(data){
             set_address_fields(data, 'address');
@@ -743,7 +805,7 @@ function showMessage(msg_title, msg_body, delay_time=60*1000){
 }
 
 
-$('select').change(function(){
+$('.address_item').change(function(){
     var id = $(this).attr('id');
     var id_first_part = "#"+id.split("-")[0]+"-";
     var id_second_part = id.split("-")[1]
@@ -894,7 +956,7 @@ function set_address_fields(data, id_prefix){
     $(id_prefix + "email").val(data.email);
 }
 
-function addUpdateAddress(action='add', address_book_id=0){
+function addUpdateAddress(action='add', address_id=0){
     var title = $("#address-title").val().trim();
     var country = $("#address-country").val();
     var province = $("#address-province").val();
@@ -920,23 +982,29 @@ function addUpdateAddress(action='add', address_book_id=0){
         $.ajax({
             url: '/user/ajax/add-update-address/',
             type: 'GET',
-            data : {
-                'action': action,
-                'address-book-id': address_book_id,
-                'title': title,
-                'country': country,
-                'province': province,
-                'city': city,
-                'address1': address1,
-                'address2': address2,
-                'zip': zip,
-                'phone': phone,
-                'fax': fax,
-                'email': email
+            data:{
+                'address_data' : JSON.stringify({
+                    'action': action,
+                    'address-id': address_id,
+                    'title': title,
+                    'country': country,
+                    'province': province,
+                    'city': city,
+                    'address1': address1,
+                    'address2': address2,
+                    'zip': zip,
+                    'phone': phone,
+                    'fax': fax,
+                    'email': email
+                })
             },
             success : function(data){
-                if(data.errors.length > 0 ){
-                    alert(data.errors);
+                if(data.error.length > 0 ){
+                    alert(data.error);
+                    $("#address-row-" + data.address_id).addClass("highlighted");
+                    $([document.documentElement, document.body]).animate({
+                        scrollTop: $("#address-row-" + data.address_id).offset().top
+                    }, 1000);
                 }
                 else {
                     window.location.reload();
@@ -1009,3 +1077,6 @@ function validateEmail(Email) {
     }
 }
 
+function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}

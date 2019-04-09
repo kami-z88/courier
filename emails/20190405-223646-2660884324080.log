@@ -1,0 +1,52 @@
+Content-Type: multipart/alternative;
+ boundary="===============8213842323497974363=="
+MIME-Version: 1.0
+Subject: Your signup at example.com.
+From: webmaster@localhost
+To: gard@ali.com
+Date: Fri, 05 Apr 2019 18:06:46 -0000
+Message-ID: <155448760646.5356.8005011455831413963@DESKTOP-CEBLTG5>
+
+--===============8213842323497974363==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear gardashali,
+
+Thank you for signing up at example.com.
+
+To activate your account you should click on the link below:  
+://example.com/activate/c37a5069904360fff76f7ae5bc5842b6f4d45d84/
+
+Thanks for using our site!  
+Sincerely,  
+example.com
+
+
+--===============8213842323497974363==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+
+<html>
+<body>
+    <p>Dear gardashali,</p>
+    <p>Thank you for signing up at example.com.</p>
+    <p>
+        To activate your account you should click on the link below:<br />
+        ://example.com/activate/c37a5069904360fff76f7ae5bc5842b6f4d45d84/
+    </p>
+    <p>
+        Thanks for using our site!<br />
+        Sincerely,<br />
+        example.com
+    </p>
+</body>
+</html>
+
+
+--===============8213842323497974363==--
+
+-------------------------------------------------------------------------------

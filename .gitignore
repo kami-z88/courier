@@ -10,6 +10,6 @@
 /account/migrations
 /project/management/__pycache__
 /project/management/commands/__pycache__
-/project/files/avatar/*
+/project/files/photo/*
 /project/files/cache/*
 migrations

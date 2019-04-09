@@ -136,7 +136,7 @@
                   <td>{{ forloop.counter }}</td>
                   <td>{{ reviewed_delivery.user.username }}</td>
                   <td>{{ reviewed_delivery.service_type.title }}</td>
-                  <td>{{ reviewed_delivery.packages.count }}</td>
+                  <td>{{ reviewed_delivery.package_set.all.count }}</td>
                   <td>{{ reviewed_delivery.courier.user.username }}</td>
                   <td>{{ reviewed_delivery.get_status_display}}</td>
                   <td><a href="#">details</a> </td>

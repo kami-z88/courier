@@ -3,8 +3,8 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from .models import AvailableTime, ServiceType, Dispatcher, Courier, Delivery,\
-	DepositPayment, Payment, Address, AddressBook, PackageTemplate, Package,\
-	OnlinePayment, Country, Province, City
+	DepositPayment, Payment, Address, PackageTemplate, Package,\
+	OnlinePayment, Country, Province, City, Comment
 
 
 class AvailableTimeInline(admin.TabularInline):
@@ -25,11 +25,11 @@ class AvailableTimeAdmin(admin.ModelAdmin):
 
 
 class DispatcherAdmin(admin.ModelAdmin):
-	list_display = ['user','avatar']
+	list_display = ['user','photo']
 
 
 class CourierAdmin(admin.ModelAdmin):
-	list_display = ['user','avatar']
+	list_display = ['user']
 
 
 class Addressline(admin.TabularInline):
@@ -52,8 +52,8 @@ class AddressAdmin(admin.ModelAdmin):
 	list_display = ['id', 'address1', 'address2', 'city', 'zip', 'phone']
 
 
-class AddressBookAdmin(admin.ModelAdmin):
-	pass
+class CommentAdmin(admin.ModelAdmin):
+	list_display = [f.name for f in Comment._meta.fields]
 
 
 class PackageTemplateAdmin(admin.ModelAdmin):
@@ -88,7 +88,7 @@ admin.site.register(Delivery, DeliveryAdmin)
 admin.site.register(DepositPayment, DepositAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(Address, AddressAdmin)
-admin.site.register(AddressBook, AddressBookAdmin)
+admin.site.register(Comment, CommentAdmin)
 admin.site.register(PackageTemplate, PackageTemplateAdmin)
 admin.site.register(Package, PackageAdmin)
 admin.site.register(OnlinePayment, OnlinePaymentAdmin)

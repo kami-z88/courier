@@ -387,14 +387,20 @@ div.package-template div.selective-option-item:hover{
 /*
     User delivery request report page
 */
-.delivery-report > dl > dt {
+
+.row.delivery-report {
+	background-color: #a3b7ff;
+	padding:0 1em 0 1em
+}
+
+.delivery-report > div > dt {
     background-color:#97D7EA;
     margin-top:3px;
     padding:1em;
     border-radius: 4px 0 0 4px;
 }
 
-.delivery-report > dl > dd {
+.delivery-report > div > dd {
     background-color:#E6FAFD;
     margin-top:3px;
     margin-bottom:0;
@@ -411,14 +417,13 @@ div.package-template div.selective-option-item:hover{
         background-color:#ddd;
 
 }
-
 /*
     Tracking Page
 */
 .tracking-table-wrapper {
     margin:2em auto 0 auto;
     padding:2em;
-    background-color:#acbbfce6;
+    background-color:#acbbfcf5;
     border-radius:5px;
 }
 
@@ -460,6 +465,10 @@ div.package-template div.selective-option-item:hover{
 /*
     page: user-address-book.html
 */
+.highlighted {
+    background-color:#a1c3e0 !important;
+}
+
 ul.address {
     margin-top:2em;
     list-style-type:none;
@@ -553,4 +562,39 @@ ul.address > li {
     vertical-align:middle;
     padding:0;
     margin:0;
+}
+
+.table thead th, .tracking-table-wrapper {
+    text-align:center;
+    color:#000;
+}
+
+.select-action {
+    background-color:#5b5bff80;
+    max-width:64%;
+    color:#000;
+}
+
+.multi-package {
+    background-color:#4477f2;
+    border-radius: 5px;
+    padding: 0.4em;
+    vertical-align: middle;
+    cursor:pointer;
+}
+
+.package-table {
+    background-color:#6382da  !important;
+    width:90%;
+    margin:auto;
+    margin-bottom:2rem;
+    border-radius:5px;
+}
+
+.nav-user-photo-username-container {
+    margin-bottom:0.5em !important;
+}
+
+.dropdown-menu.dropdown-menu-right {
+    text-align:center
 }

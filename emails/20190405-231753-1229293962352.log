@@ -1,0 +1,52 @@
+Content-Type: multipart/alternative;
+ boundary="===============7724987727759394304=="
+MIME-Version: 1.0
+Subject: Your signup at example.com.
+From: webmaster@localhost
+To: bash@eer.com
+Date: Fri, 05 Apr 2019 18:47:53 -0000
+Message-ID: <155449007388.6216.15303594655621019463@DESKTOP-CEBLTG5>
+
+--===============7724987727759394304==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear basheer,
+
+Thank you for signing up at example.com.
+
+To activate your account you should click on the link below:  
+://example.com/activate/9938e389e72d0400f561a1a0937a626c2665498c/
+
+Thanks for using our site!  
+Sincerely,  
+example.com
+
+
+--===============7724987727759394304==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+
+<html>
+<body>
+    <p>Dear basheer,</p>
+    <p>Thank you for signing up at example.com.</p>
+    <p>
+        To activate your account you should click on the link below:<br />
+        ://example.com/activate/9938e389e72d0400f561a1a0937a626c2665498c/
+    </p>
+    <p>
+        Thanks for using our site!<br />
+        Sincerely,<br />
+        example.com
+    </p>
+</body>
+</html>
+
+
+--===============7724987727759394304==--
+
+-------------------------------------------------------------------------------

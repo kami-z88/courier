@@ -2,54 +2,57 @@
 {% load static %}
 {% load i18n %}
 {% load tags %}
-
-
 {% block title %}Rejected requests{% endblock %}
-
 {% block second_row %}
 <!-- Modal: Confirm undo rejection of  packages-->
-<div class="modal fade" id="undoRejection" tabindex="-1" role="dialog" aria-labelledby="undoRejectionTitle" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-body">
-        <span>Undo this pickup rejection?</span>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="undo-pickup-reject" type="button" class="btn btn-primary" data-dismiss="modal" value="">Undo</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Modal:end -->
-   <h3>Rejected requests</h3>
-   <div class="row">
-      <div class="table-responsive col-md-12">
-         <table class="table table-striped">
-            <thead>
-               <tr>
-                  <th>Requester</th>
-                  <th>Rejection reason</th>
-                  <th>Package ID</th>
-                  <th>Details</th>
-               </tr>
-            </thead>
-            <tbody>
-               {% for delivery in deliveries %}
-                  {% for package in delivery.package_set.all %}
-                     {% for comment in package.comments.all %}
-                        <tr>
-                           <td>{{ delivery.user.get_full_name }}</td>
-                           <td>{{ comment.message }}</td>
-                           <td>{{ package.id }}</td>
-                           <td><a href="#">details</a> </td>
-                           <td><button class="btn btn-success open-undo-rejection-modal" data-toggle="modal" data-target="#undoRejection" value="{{ package.id }}">undo</button></td>
-                        </tr>
-                     {% endfor %}
-                  {% endfor %}
-               {% endfor %}
-            </tbody>
-         </table>
+<div class="modal fade" id="pickupRejection" tabindex="-1" role="dialog" aria-labelledby="undoRejectionTitle" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-body">
+            <span>This item has rejected before! Do you want to pickup it?</span>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="do-pickup-rejected" type="button" class="btn btn-primary" data-dismiss="modal" value="">Pick Up</button>
+         </div>
       </div>
    </div>
+</div>
+<!-- Modal:end -->
+<h3 class="col-xm">Today's Rejected requests</h3>
+<div class="row">
+   <div class="table-responsive col-md-12">
+      <table class="table table-striped">
+         <thead>
+            <tr>
+               <th>Requester</th>
+               <th>Rejection reason</th>
+               <th style="text-align:center">Delivery ID</th>
+               <th style="text-align:center">Package ID</th>
+               <th>Details</th>
+               <th>Action</th>
+            </tr>
+         </thead>
+         <tbody>
+            {% for delivery in deliveries_today %}
+                {% for package in delivery.package_set.all %}
+                    {% if package.status == "rp" %}
+                        {% for comment in package.comments.all %}
+                            <tr>
+                                <td>{{ delivery.get_user_proper_name }}</td>
+                                <td>{{ comment.message }}</td>
+                                <td style="text-align:center">{{ delivery.id }}</td>
+                                <td style="text-align:center">{{ package.id }}</td>
+                                <td><a href="#">details</a> </td>
+                                <td><button class="btn btn-success open-pickup-rejection-modal" data-toggle="modal" data-target="#pickupRejection" value="{{ package.id }}">Pick Up</button></td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+         </tbody>
+      </table>
+   </div>
+</div>
 {% endblock %}
+

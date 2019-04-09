@@ -2,12 +2,12 @@ from django.utils.http import urlencode
 from hashlib import md5
 
 
-def get_gravatar(email, size=80, default='identicon'):
-	""" Get's a Gravatar for a email address.
+def get_grphoto(email, size=80, default='identicon'):
+	""" Get's a Grphoto for a email address.
 	:param email:
-		used to get gravatar url
+		used to get grphoto url
 	:param size:
-		The size in pixels of one side of the Gravatar's square image.
+		The size in pixels of one side of the Grphoto's square image.
 		Optional, if not supplied will default to ``80``.
 
 	:param default:
@@ -29,17 +29,17 @@ def get_gravatar(email, size=80, default='identicon'):
 			``monsterid``
 				A generated 'monster' with different colors, faces, etc.
 
-			``wavatar``
+			``wphoto``
 				Generated faces with differing features and backgrounds
 
-	:return: The URI pointing to the Gravatar.
+	:return: The URI pointing to the Grphoto.
 	"""
-	# base_url = 'https://secure.gravatar.com/avatar/'
-	base_url = 'https://www.gravatar.com/avatar/'
-	gravatar_url = '{0}{1}'.format(base_url, md5(email.lower().encode('utf-8')).hexdigest())
+	# base_url = 'https://secure.grphoto.com/photo/'
+	base_url = 'https://www.grphoto.com/photo/'
+	grphoto_url = '{0}{1}'.format(base_url, md5(email.lower().encode('utf-8')).hexdigest())
 
-	gravatar_url += urlencode({
+	grphoto_url += urlencode({
 		's': str(size),
 		'd': default
 	})
-	return gravatar_url
+	return grphoto_url

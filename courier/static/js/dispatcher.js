@@ -128,8 +128,8 @@ $("#auto-dispatch-select").change(function(){
             data: {
                 'courier-id': courier_id
             },
-            success: function(){
-                alert("ok");
+            success: function(data){
+                alert("Auto dispatch set to " + data.courier_name );
             }
         });
     }

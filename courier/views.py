@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from courier.models import Dispatcher, Courier, Address, ServiceType, PackageTemplate, AddressBook,\
+from courier.models import Dispatcher, Courier, Address, ServiceType, PackageTemplate,\
 	Comment, Country, Province, City, ControlPanel
 from courier.models import Delivery, Package
 from django.contrib.auth.models import User
@@ -22,7 +22,7 @@ def home_page(request):
 		elif Dispatcher.objects.filter(user=request.user).exists():
 			return dispatcher_home(request)
 		else:
-			return render(request, "user-home.html", context)
+			return render(request, "user-home.html", {'profile': Profile.objects.get(user=request.user)})
 	else:
 		from account.forms import SinginForm
 		form = SinginForm()
@@ -118,11 +118,10 @@ def visitor_tracking_ajax(request):
 # $$$$$  User  section $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 def user_tracking(request):
-	# TODO: get Delivery with same user as request.user
-	deliveries = Delivery.objects.filter(user=request.user)
+	deliveries = Delivery.objects.filter(user=request.user).order_by('-id')
 	context = {
 		'deliveries': deliveries,
-		'users': 'test',
+		'x': request.user.role,
 	}
 	return render(request, "user-tracking.html", context)
 
@@ -130,7 +129,7 @@ def user_tracking(request):
 def user_delivery(request):
 	service_types = ServiceType.objects.all()
 	package_templates = PackageTemplate.objects.all()
-	address_book = AddressBook.objects.filter(user=request.user)
+	addresses = Address.objects.filter(user=request.user, archived=False)
 	countries = Country.objects.all()
 	if countries.count() == 1:
 		provinces = Province.objects.all()
@@ -143,7 +142,7 @@ def user_delivery(request):
 		cities = ""
 
 	context = {
-		"addressBook": address_book,
+		"addresses": addresses,
 		'service_types': service_types,
 		'package_templates': package_templates,
 		'countries': countries,
@@ -181,7 +180,7 @@ def get_cities(request):
 
 
 def user_address_book(request):
-	address_book = AddressBook.objects.filter(user=request.user)
+	addresses = Address.objects.filter(user=request.user, archived=False)
 	countries = Country.objects.all()
 	if countries.count() == 1:
 		provinces = Province.objects.all()
@@ -193,7 +192,7 @@ def user_address_book(request):
 		provinces = ""
 		cities = ""
 	context = {
-		"address_book": address_book,
+		"addresses": addresses,
 		"countries": countries,
 		"provinces": provinces,
 		"cities": cities,
@@ -203,51 +202,35 @@ def user_address_book(request):
 
 
 def add_update_user_address(request):
-	action = request.GET.get('action', None);
-	address_book_id = request.GET.get('address-book-id', None)
-	city = City.objects.get(id=request.GET.get('city', None))
-	errors = []
-	if action == "add":
-		x = AddressBook.objects.filter(user=request.user)
-		address_book = AddressBook()
-		address_book.user = request.user
-		address = Address()
-	elif action == "update":
-		address_book = AddressBook.objects.get(id=address_book_id)
-		if address_book.user != request.user:
-			return
-		else:
-			address = Address.objects.get(id=address_book.address.id)
-	address.city = city
-	address.address1 = request.GET.get('address1', None)
-	address.address2 = request.GET.get('address2', None)
-	address.zip = request.GET.get('zip', None)
-	address.phone = request.GET.get('phone', None)
-	address.fax = request.GET.get('fax', None)
-	address.email = request.GET.get('email', None)
-	address.save()
-	address_book.address = address
-	address_book.title = request.GET.get('title', None).lower()
-	address_book.used_for = 'd'
-	try:
-		address_book.save()
-	except IntegrityError as e:
-		errors.append(f'Already have an address with title: {request.GET.get("title", None)}')
-	data = {
-		'errors': errors
-	}
+	address_data_str = request.GET.get('address_data', None)
+	address_data_dict = json.loads(address_data_str)
+	data = {}
+	if address_data_dict['action'] == 'add':
+		result = add_address(address_data_dict, request.user)
+		data = {
+			'address_id': result['address'].id,
+			'error_type': result['error-type'],
+			'error': result['error-message']
+		}
+	elif address_data_dict['action'] == 'update':
+		result = update_address(address_data_dict, request.user)
+		data = {
+			'address_id': result['address'].id,
+			'error_type': result['error-type'],
+			'error': result['error-message']
+		}
 	data = json.dumps(data)
 	return HttpResponse(data, content_type='application/json')
 
 
 def get_user_address(request):
-	address_book_id = request.GET.get('addressBook_id', None);
-	address_book = AddressBook.objects.get(id=address_book_id)
-	if address_book.user == request.user:
-		address = Address.objects.get(id=address_book.address.id)
+	data = {}
+	address_id = request.GET.get('address_id', None);
+	try:
+		address = Address.objects.get(id=address_id, user=request.user)
 		data = get_country_province_city_list(address.city.id)
-		if address_book.title:
-			data['title'] = address_book.title.capitalize()
+		if address.title:
+			data['title'] = address.title.capitalize()
 		else:
 			data['title'] = ""
 		data['address1'] = address.address1
@@ -256,22 +239,22 @@ def get_user_address(request):
 		data['phone'] = address.phone
 		data['fax'] = address.fax
 		data['email'] = address.email
-	else:
-		data = {}
+		data['result'] = "success"
+	except Address.DoesNotExist:
+		data['result'] = "failed"
 	data = json.dumps(data, sort_keys=True)
 	return HttpResponse(data, content_type='application/json')
 
 
 def delete_user_address(request):
-	address_book_id = request.GET.get("address_book_id", None)
+	address_id = request.GET.get('address_id', None)
+	result = delete_address(address_id, request.user)
 	data = {}
-	try:
-		address_book = AddressBook.objects.get(id=address_book_id, user=request.user)
-		address_book.delete()
-		data['result'] = 'success'
-	except AddressBook.DoesNotExist:
-		data['result'] = 'failed'
-	data = json.dumps(data);
+	if result:
+		data['result'] = "success"
+	else:
+		data['result'] = "failed"
+	data = json.dumps(data)
 	return HttpResponse(data, content_type='application/json')
 
 
@@ -291,35 +274,32 @@ def user_payments(request):
 
 def submit_user_delivery(request):
 	from django.urls import reverse
-	try:
-		delivery_str = request.GET.get('delivery', None)
-		delivery_data = json.loads(delivery_str)
-		delivery = Delivery()
-		delivery.user = request.user
-		delivery.status = "wd"
-		if cp.auto_dispatch:  # If auto dispatch is on sets the delivery courier to intended courier
-			delivery.courier = Courier.objects.get(id=cp.auto_dispatch_courier.id)
-			cp.set_new_task_for_courier(cp.auto_dispatch_courier.id)
-			delivery.status = "wc"
-		delivery.from_address = get_set_address(delivery_data["source_address"], request.user,'s')
-		delivery.payment_type = "os"
-		delivery.service_type = ServiceType.objects.get(pk=delivery_data["service_type"])
-		package_data = {}
+	delivery_str = request.GET.get('delivery', None)
+	delivery_data = json.loads(delivery_str)
+	delivery = Delivery()
+	delivery.user = request.user
+	delivery.set_status_by_action("request_delivery", request.user.role)
+	delivery.from_address = add_address(delivery_data["source_address"], request.user,'pa')['address']
+	delivery.payment_type = "os"
+	delivery.service_type = ServiceType.objects.get(pk=delivery_data["service_type"])
+	delivery.save()
+	for package_index in delivery_data["packages"]:
+		package_data = delivery_data["packages"][package_index]
+		package = Package()
+		package.to_address = add_address(package_data, request.user, 'da')['address']
+		package.template = PackageTemplate.objects.get(pk=package_data["template_id"])
+		package.signature = package_data["signature"]
+		package.tracking_code_sharing_sms = package_data["share_tracking_sms"]
+		package.tracking_code_sharing_email = package_data["share_tracking_email"]
+		package.description = package_data["description"]
+		package.delivery = delivery
+		package.save()
+	if cp.auto_dispatch:  # If auto dispatch is on sets the delivery courier to intended courier
+		delivery.courier = Courier.objects.get(id=cp.auto_dispatch_courier.id)
+		cp.set_new_task_for_courier(cp.auto_dispatch_courier.id)
+		delivery.set_status_by_action("auto_dispatch", 'auto_dispatch')
 		delivery.save()
-		for package_index in delivery_data["packages"]:
-			package_data = delivery_data["packages"][package_index]
-			package = Package()
-			package.to_address = get_set_address(package_data, request.user, 'd')
-			package.template = PackageTemplate.objects.get(pk=package_data["template_id"])
-			package.signature = package_data["signature"]
-			package.tracking_code_sharing_sms = package_data["share_tracking_sms"]
-			package.tracking_code_sharing_email = package_data["share_tracking_email"]
-			package.description = package_data["description"]
-			package.delivery = delivery
-			package.save()
-		result = {"status": "success", "redirect": request.build_absolute_uri(reverse('user_tracking'))}
-	except BaseException as e:
-		result = {"status": "error", "message": e}
+	result = {"status": "success", "redirect": request.build_absolute_uri(reverse('user_tracking'))}
 	return HttpResponse(json.dumps(result), content_type='application/json')
 
 
@@ -330,8 +310,39 @@ def delivery_item(request, slug):
 		"delivery": delivery,
 		"packages": packages
 	}
-	return render(request, "user-delivery-report.html", context)
+	return render(request, "user-delivery-details.html", context)
 
+
+def cancel_delivery_request(request):
+	delivery_id = request.GET.get("delivery_id", None)
+	delivery = Delivery.objects.get(id=delivery_id, user=request.user)
+	if delivery.status == "wd":
+		delivery.set_status_by_action("cancel_before_dispatch", request.user.role)
+	elif delivery.status == "wp":
+		delivery.set_status_by_action("cancel_before_pickup", request.user.role)
+	delivery.save()
+	updated_delivery = Delivery.objects.get(id=delivery_id)
+	data = {'result': ''}
+	if updated_delivery.status == 'cbd' or updated_delivery.status == 'cbp':
+		data['result'] = 'success'
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
+
+
+def cancel_pickup_handover(request):
+	package_id = request.GET.get("package_id", None)
+	action = request.GET.get("action", None)
+	package = Package.objects.get(id=package_id)
+	if package.check_user(request.user) and package.is_mutable(request.user.role):
+		package.set_status_by_action(action)
+		package.save()
+	data = {}
+	if not package.is_mutable(request.user.role):
+		data["result"] = "success"
+	else:
+		data["result"] = "failure"
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # $$$$$  Dispatcher  section $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -351,7 +362,7 @@ def dispatcher_home(request):
 	delivery_hours = dict((lambda x: ( datetime.strptime(str(x), '%H').strftime('%I %p') ,deliveries_per_hour[x]) if x in deliveries_per_hour else ( datetime.strptime(str(x), '%H').strftime('%I %p') ,0))(key) for key in range(0,24))
 	request_chart_data = json.dumps(delivery_hours)
 
-	deliveries_count = Delivery.objects.all().exclude(Q(status='rd',request_time_created__lte=today) | Q(status='rc',request_time_created__lte=today) | Q(status='d',request_time_created__lte=today)).count()
+	deliveries_count = Delivery.objects.all().exclude(Q(status='rd',request_time_created__lte=today) | Q(status='rp',request_time_created__lte=today) | Q(status='d',request_time_created__lte=today)).count()
 	deliveries_not_reviewed = Delivery.objects.filter(status='wd').count()
 	waiting_for_courier = Delivery.objects.filter(request_time_created__gte=today,status='wc').count()
 	on_road_to_pick = Delivery.objects.filter(status='ap').count()
@@ -380,7 +391,7 @@ def dispatcher_tasks(request):
 	for courier in couriers:
 		user = User.objects.get(user=courier.user.id)
 		user_name = user.username
-		user_img_path = "/files/{}".format(Profile.objects.get(user=user).avatar)
+		user_img_path = "/files/{}".format(Profile.objects.get(user=user).photo)
 		couriers_info[courier.id] = {'userName':user_name, 'userImgPath':user_img_path}
 	if cp.auto_dispatch:
 		auto_dispatch_courier_id = cp.auto_dispatch_courier.id
@@ -398,7 +409,7 @@ def dispatcher_tasks(request):
 
 def dispatcher_archive(request):
 	context = {
-		'dispatcher': 'test'
+		'x': request.user.role
 	}
 	return render(request, "dispatcher-archive.html", context)
 
@@ -433,7 +444,7 @@ def set_delivery_courier(request):
 	courier = Courier.objects.get(id=courier_id)
 	dispatcher = Dispatcher.objects.get(user=request.user)
 	delivery.courier = courier
-	delivery.status = 'wc'
+	delivery.set_status_by_action("dispatch", request.user.role)
 	delivery.dispatcher = dispatcher
 	delivery.save()
 	updated_delivery = Delivery.objects.get(id=delivery_id)
@@ -455,7 +466,7 @@ def set_delivery_rejection_reason(request):
 	comment_text = request.GET.get('reason', None)
 	delivery = Delivery.objects.get(id=delivery_id)
 	dispatcher = Dispatcher.objects.get(user=request.user)
-	delivery.status = 'rd'
+	delivery.set_status_by_action("reject_delivery", request.user.role)
 	delivery.dispatcher = dispatcher
 	delivery.save()
 	new_comment = Comment()
@@ -465,7 +476,7 @@ def set_delivery_rejection_reason(request):
 	new_comment.message = comment_text
 	new_comment.for_reject = True
 	new_comment.save()
-	delivery.comment.add(new_comment)
+	delivery.comments.add(new_comment)
 	if(new_comment.message == comment_text) and (delivery.status == 'rd'):
 		data = {
 			'result': 'success'
@@ -481,8 +492,16 @@ def set_delivery_rejection_reason(request):
 def set_auto_dispatch_on(request):
 	courier_id = request.GET.get("courier-id", None)
 	result = cp.set_auto_dispatch(courier_id)
-	result = json.dumps(result)
-	return HttpResponse(result, content_type='application/json')
+	if result:
+		courier = Courier.objects.get(id=courier_id)
+		courier_name = courier.user.get_username()
+		data = {
+			'courier_name': courier_name
+		}
+	else:
+		data = ""
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
 
 
 def set_auto_dispatch_off(request):
@@ -536,7 +555,7 @@ def courier_tasks_custom_sort(request):
 
 
 def courier_tasks_should_pickup(request):
-	deliveries = Delivery.objects.filter(courier=Courier.objects.get(user=request.user), status='wc')
+	deliveries = Delivery.objects.filter(courier=Courier.objects.get(user=request.user), status='wp')
 	courier = Courier.objects.get(user=request.user)
 	context = {
 		'deliveries': deliveries,
@@ -547,13 +566,11 @@ def courier_tasks_should_pickup(request):
 
 def courier_tasks_pickedup(request):
 	courier = Courier.objects.get(user=request.user)
-	deliveries = Delivery.objects.filter(Q(status='pc') | Q(status='pp'), courier=courier)
+	deliveries = Delivery.objects.filter(courier=courier).exclude(status='ap')
 	pickedup_count = 0
 	for delivery in deliveries:
-		packages = Package.objects.filter(delivery=delivery)
-		for package in packages:
-			if package.status == 'pc':
-				pickedup_count += 1
+		packages = Package.objects.filter(delivery=delivery, status='p')
+		pickedup_count += packages.count()
 	context = {
 		'pickedup_deliveries': deliveries,
 		'pickedup_count': pickedup_count,
@@ -567,20 +584,54 @@ rejected_package_ids = []
 
 def courier_tasks_rejected_pickup(request):
 	courier = Courier.objects.get(user=request.user)
-	deliveries = Delivery.objects.filter(courier=courier)
+	today = datetime.now().date()
+	deliveries_today = Delivery.objects.filter(courier=courier, request_time_created__gte=today).exclude(status="ap")
 	context = {
-		'deliveries': deliveries,
+		'deliveries_today': deliveries_today,
 		'courier': courier
 	}
 	return render(request, "courier-tasks-reject-pickup.html", context)
 
 
+def failure_tasks(request):
+	today = datetime.now().date()
+	yesterday = today - timedelta(1)
+	courier = Courier.objects.get(user=request.user)
+	deliveries = Delivery.objects.filter(courier=courier, request_time_created__gte=yesterday)
+	package_list = []
+	for delivery in deliveries:
+		for package in delivery.package_set.all():
+			if package.status == "hf":
+				package_list.append(package)
+	context = {
+		'courier': courier,
+		'deliveries': deliveries,
+		'package_list': package_list
+	}
+	return render(request, "courier-tasks-failures.html", context)
+
+
+def pickup_rejected(request):
+	package_id = request.GET.get("packageId", None)
+	package = Package.objects.get(id=package_id)
+	package_intial_status = package.status
+	package.set_status_by_action("pickup_rejected")
+	data = {}
+	if package.status != package_intial_status:
+		data['result'] = "success"
+	else:
+		data['result'] = "failure"
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
+
+
 def courier_target_task(request):
 	courier = Courier.objects.get(user=request.user)
-	deliveries = Delivery.objects.filter(Q(status='ap') | Q(status='pc') | Q(status='pp'), courier=courier)
+	deliveries = Delivery.objects.filter(courier=courier)
 	context = {
 		'deliveries': deliveries,
 		'courier_has_target_item': courier.has_item_in_target_tasks(),
+		'courier': courier
 	}
 	return render(request, "courier-target-task.html", context)
 
@@ -590,7 +641,7 @@ def put_task_on_target(request):
 	if task_goal == 'pickup':
 		delivery_id = request.GET.get('id', None)
 		delivery = Delivery.objects.get(id=delivery_id)
-		delivery.status = 'ap'
+		delivery.set_status_by_action("add_to_pickup_target", request.user.role)
 		delivery.save()
 		updated_delivery = Delivery.objects.get(id=delivery_id)
 		if updated_delivery.status == 'ap':
@@ -600,7 +651,7 @@ def put_task_on_target(request):
 	elif task_goal == 'handover':
 		package_id = request.GET.get('id', None)
 		package = Package.objects.get(id=package_id)
-		package.status = 'ah'
+		package.set_status_by_action("add_to_handover_target")
 		package.save()
 		updated_package = Package.objects.get(id=package_id)
 		if updated_package.status == 'ah':
@@ -617,21 +668,21 @@ def withdraw_target_task(request):
 	if item_type == 'delivery':
 		delivery_id = id
 		delivery = Delivery.objects.get(id=delivery_id)
-		delivery.status = 'wc'
+		initial_delivery_status = delivery.status
+		delivery.set_status_by_action("undo_add_to_pickup_target", request.user.role)
 		delivery.save()
-		sync_delivery_packages_status(delivery_id)
 		updated_delivery = Delivery.objects.get(id=delivery_id)
-		if updated_delivery.status == 'wc':
+		if updated_delivery.status != initial_delivery_status:
 			data = {'status': 'success'}
 		else:
 			data = {'status': 'failed'}
 	elif item_type == 'package':
 		package_id = id
 		package = Package.objects.get(id=package_id)
-		package.status = 'pc'
+		package.set_status_by_action("undo_add_to_handover_task")
 		package.save()
 		updated_package = Package.objects.get(id=package_id)
-		if updated_package.status == 'pc':
+		if updated_package.status == 'p':
 			data = {'status': 'success'}
 		else:
 			data = {'status': 'failed'}
@@ -663,7 +714,7 @@ def reject_package_pickup(request):
 	package_id = request.GET.get('packageId', None)
 	rejection_reason = request.GET.get('rejectionReason', None)
 	package = Package.objects.get(id=package_id)
-	package.status = 'rc'
+	package.set_status_by_action("reject_pickup")
 	package.save()
 	comment = Comment()
 	comment.user = request.user
@@ -686,10 +737,10 @@ def undo_reject_package_pickup(requst):
 	package_id = requst.GET.get('packageId', None)
 	Comment.objects.get(id=comment_id).delete()
 	package = Package.objects.get(id=package_id)
-	package.status = 'wp'
+	package.set_status_by_action("undo_reject_pickup")
 	package.save()
 	updated_package = Package.objects.get(id=package_id)
-	if not Comment.objects.filter(id=comment_id).exists() and updated_package.status == 'wp':
+	if not Comment.objects.filter(id=comment_id).exists() and updated_package.status == 'ap':
 		data = {'result': 'success'}
 	else:
 		data = {'result': 'failed'}
@@ -703,10 +754,10 @@ def do_undo_pickup(request):
 	package = Package.objects.get(id=package_id)
 	initial_state = package.status
 	if action == "do":
-		package.status = 'pc'
+		package.set_status_by_action("pickup")
 		package.save()
 	elif action == "undo":
-		package.status = 'wp'
+		package.set_status_by_action("undo_pickup")
 		package.save()
 	current_state = Package.objects.get(id=package_id).status
 	if initial_state != current_state:
@@ -719,10 +770,11 @@ def do_undo_pickup(request):
 
 def done_width_pickup(request):
 	delivery_id = request.GET.get("deliveryId", None)
-	initial_delivery_status = Delivery.objects.get(id=delivery_id).status
-	sync_delivery_packages_status(delivery_id)
-	current_delivery_status = Delivery.objects.get(id=delivery_id).status
-	if initial_delivery_status != current_delivery_status :
+	delivery = Delivery.objects.get(id=delivery_id)
+	initial_delivery_status = delivery.status
+	delivery.set_status_by_action("done_with_pickup", request.user.role)
+	delivery.save()
+	if initial_delivery_status != delivery.status:
 		set_pickup_time(delivery_id)
 		data = {'result':'success'}
 	else:
@@ -730,24 +782,43 @@ def done_width_pickup(request):
 	data = json.dumps(data)
 	return HttpResponse(data, content_type='application/json')
 
-
-def carry_back_package(request):
-	package_id = request.GET.get("packageId", None)
+def report_failure(request):
+	item_id = request.GET.get("id", None)
 	comment_text = request.GET.get("commentText", None)
-	package = Package.objects.get(id=package_id)
-	package.status = "ca"
-	package.save()
-	comment = Comment()
-	comment.user = request.user
-	comment.set_actor(request)
-	comment.message = comment_text
-	comment.save()
-	package.comments.add(comment)
-	if package.comments.get(pk=comment.id).message == comment_text:
-		data = {"result": "success"}
-	else:
-		data = {"result": "failed"}
+	action = request.GET.get("action", None)
+	data = {}
+	if action == "report-pickup-failure":
+		try:
+			delivery = Delivery.objects.get(id=item_id)
+			comment = Comment()
+			comment.user = request.user
+			comment.set_actor(request)
+			comment.reason = "pf"
+			comment.message = comment_text
+			comment.save()
+			delivery.set_status_by_action("report_pickup_failure", request.user.role)
+			delivery.save()
+			delivery.comments.add(comment)
+			data['result'] = "success"
+		except Delivery.DoesNotExist:
+			data['result'] = "failure"
+	elif action == "report-handover-failure":
+		try:
+			package = Package.objects.get(id=item_id)
+			comment = Comment()
+			comment.user = request.user
+			comment.set_actor(request)
+			comment.reason = "hf"
+			comment.message = comment_text
+			comment.save()
+			package.set_status_by_action("report_handover_failure")
+			package.save()
+			package.comments.add(comment)
+			data['result'] = "success"
+		except Package.DoesNotExist:
+			data['result'] = "failure"
 	data = json.dumps(data)
+
 	return HttpResponse(data, content_type='application/json')
 
 
@@ -760,15 +831,39 @@ def handover_package(request):
 		package.signer_name = signer_name
 	if signer_phone:
 		package.signer_phone = signer_phone
-	package.status = "d"
+	package.set_status_by_action("handover")
 	package.handover_time = datetime.now()
 	package.save()
 	updated_package = Package.objects.get(id=package_id)
 	if updated_package.status == "d":
 		data = {"result": "success"}
-		sync_delivery_packages_status_1(package_id)
 	else:
 		data = {"result": "failed"}
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
+
+
+def add_failure_task_to_target(request):
+	item_id = request.GET.get('item_id', None)
+	item_type = request.GET.get('item_type', None)
+	data = {}
+	if item_type == 'delivery':
+		delivery = Delivery.objects.get(id=item_id)
+		delivery_initial_status = delivery.status
+		delivery.set_status_by_action("add_to_pickup_target", request.user.role)
+		delivery.save()
+		if delivery.status != delivery_initial_status:
+			data['result'] = "success"
+		else:
+			data['result'] = "failure"
+	elif item_type == "package":
+		package = Package.objects.get(id=item_id)
+		package_initial_status = package.status
+		package.set_status_by_action("add_to_handover_target")
+		if package.status != package_initial_status:
+			data['result'] = "success"
+		else:
+			data['result'] = "failure"
 	data = json.dumps(data)
 	return HttpResponse(data, content_type='application/json')
 
@@ -776,8 +871,17 @@ def handover_package(request):
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # $$$$$  Helper functions section $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-def get_set_address(address_data, user, usage):
+def add_address(address_data, user, category='da'):
+	if 'title' in address_data.keys():
+		print("Add address path point 1")
+		pass
+	else:
+		print("Add address path point 2")
+		address_data['title'] = None
+	result = {}
 	address = Address()
+	address.user = user
+	address.category = category
 	address.city = City.objects.get(id=address_data["city"])
 	address.address1 = address_data["address1"]
 	address.address2 = address_data["address2"]
@@ -785,51 +889,194 @@ def get_set_address(address_data, user, usage):
 	address.phone = address_data["phone"]
 	address.fax = address_data["fax"]
 	address.email = address_data["email"]
-	address_hash = address.get_one_line_hash()
+	address.hash = address.get_one_line_hash()
 	try:
-		address_from_db = Address.objects.get(hash=address_hash)
-		package_address = address_from_db
-		if not AddressBook.objects.filter(user=user, address=address_from_db).exists():
-			address_book = AddressBook()
-			address_book.user = user
-			address_book.address = address_from_db
-			address_book.used_for = usage
-			address_book.save()
+		address = Address.objects.get(user=user, hash=address.hash)
+		print("Add address path point 3")
+		if address.archived:
+			print("Add address path point 4")
+			if address_data['title']:
+				print("Add address path point 5")
+				try:
+					address = Address.objects.get(user=user, title=address_data['title'].lower())
+					print("Add address path point 6")
+					result['address'] = address
+					result['error-type'] = "duplicateTitle"
+					result['error-message'] = "This title has already used for address with ID of {}".format(address.id)
+					return result
+				except Address.DoesNotExist:
+					print("Add address path point 7")
+					address.title = address_data['title'].lower()
+					address.archived = False
+					address.save()
+					result['address'] = address
+					result['error-type'] = ""
+					result['error-message'] = ""
+					return result
+			else:
+				print("Add address path point 8")
+				address.archived = False
+				address.save()
+				result['address'] = address
+				result['error-type'] = ""
+				result['error-message'] = ""
+				return result
+		else:
+			print("Add address path point 9")
+			result['address'] = address
+			result['error-type'] = "duplicateAddress"
+			result['error-message'] = "This address is already exists! address ID: {}".format(address.id)
+			return result
 	except Address.DoesNotExist:
-		address.save()
-		address_book = AddressBook()
-		address_book.user = user
-		address_book.address = address
-		address_book.used_for = usage
-		address_book.save()
-		package_address = address
-	return package_address
+		print("Add address path point 10")
+		if address_data['title']:
+			print("Add address path point 11")
+			try:
+				address = Address.objects.get(user=user, title=address_data['title'].lower())
+				print("Add address path point 12")
+				result['address'] = address
+				result['error-type'] = "duplicateTitle"
+				result['error-message'] = "This title has already used for address with ID of {}".format(address.id)
+				return result
+			except Address.DoesNotExist:
+				print("Add address path point 13")
+				address.title = address_data['title'].lower()
+				address.save()
+				result['address'] = address
+				result['error-type'] = ""
+				result['error-message'] = ""
+				return result
+		else:
+			print("Add address path point 14")
+			address.save()
+			result['address'] = address
+			result['error-type'] = ""
+			result['error-message'] = ""
+			return result
 
 
-def sync_delivery_packages_status(delivery_id):
-	delivery = Delivery.objects.get(id=delivery_id)
-	delivery_status = delivery.status
-	if delivery_status == 'ap':
-		packages = Package.objects.filter(delivery=delivery)
-		package_count = packages.count() if packages.count() else 0
-		pickedup_packages_count = packages.filter(status='pc').count() if packages.filter(status='pc').count() else 0
-		rejected_packages_count = packages.filter(status='rc').count() if packages.filter(status='rc') else 0
-		if package_count == pickedup_packages_count:
-			delivery.status = 'pc'
-			delivery.save()
-		elif package_count == rejected_packages_count:
-			delivery.status = 'rc'
-			delivery.save()
-		elif package_count == (rejected_packages_count + pickedup_packages_count ):
-			delivery.status = 'pp'
-			delivery.save()
-	elif delivery_status == 'wc':
-		for package in Package.objects.filter(delivery=delivery):
-			package.status = 'wp'
-			package.save()
-			for comment in package.comments.all():
-				if comment.for_reject or (comment.actor == 'c'):
-					comment.delete()
+def update_address(address_data, user):
+	if address_data['title']:
+		address_data['title'] = address_data['title'].lower()
+	result = {}
+	address = Address()
+	address.user = user
+	address.city = City.objects.get(id=address_data["city"])
+	address.address1 = address_data["address1"]
+	address.address2 = address_data["address2"]
+	address.zip = address_data["zip"]
+	address.phone = address_data["phone"]
+	address.fax = address_data["fax"]
+	address.email = address_data["email"]
+	address.hash = address.get_one_line_hash()
+	try:
+		old_address = Address.objects.get(id=address_data['address-id'], user=user)
+		print("Path point: 1")
+		if old_address.hash == address.hash:
+			print("Path point: 2")
+			if old_address.title == address_data['title']:
+				return
+			else:
+				print("Path point: 3")
+				if address_title_used(user, address_data['title']):
+					returned_address = address_title_used(user, address_data['title'])
+					print("Path point: 3.1")
+					result['address'] = returned_address
+					result['error-type'] = "duplicateTitle"
+					result['error-message'] = "This title has already used for address with ID of {}".format(returned_address.id)
+					return result
+				else:
+					print("Path point: 4")
+					old_address.title = address_data['title']
+					old_address.save()
+					result['address'] = old_address
+					result['error-type'] = ""
+					result['error-message'] = ""
+					return result
+		else:
+			print("Path point: 5")
+			if old_address.is_referenced():
+				print("Path point: 5.1")
+				old_address_old_title = old_address.title
+				old_address.title = None
+				old_address.archived = True
+				old_address.save()
+				add_result = add_address(address_data, user)
+				print(add_result['error-type'])
+				if not add_result['error-type']:
+					print("Path point: 6")
+					result['address'] = add_result['address']
+					result['error-type'] = ""
+					result['error-message'] = ""
+					return result
+				else:
+					old_address.title = old_address_old_title
+					old_address.archived = False
+					old_address.save()
+					print("Path point: 7")
+					result['address'] = add_result['address']
+					result['error-type'] = add_result['error-type']
+					result['error-message'] = add_result['error-message']
+					return result
+			else:
+				print("Path point: 8")
+				result_address = address_title_used(user, address_data['title'])
+				if result_address and result_address != old_address:
+					print("Path point: 8.1")
+					result['address'] = address
+					result['error-type'] = "duplicateTitle"
+					result['error-message'] = "This title has already used for address with ID of {}".format(old_address.id)
+					return result
+				else:
+					print("Path point: 9")
+					try:
+						address = Address.objects.get(user=user, hash=address.hash)
+						print("Path point: 10")
+					except Address.DoesNotExist:
+						print("Path point: 11")
+						old_address.title = address_data['title'].lower()
+						old_address.city = City.objects.get(id=address_data["city"])
+						old_address.address1 = address_data["address1"]
+						old_address.address2 = address_data["address2"]
+						old_address.zip = address_data["zip"]
+						old_address.phone = address_data["phone"]
+						old_address.fax = address_data["fax"]
+						old_address.email = address_data["email"]
+						old_address.hash = address.get_one_line_hash()
+						old_address.save()
+						result['address'] = old_address
+						result['error-type'] = ""
+						result['error-message'] = ""
+						return result
+	except Address.DoesNotExist:
+		result['address'] = ""
+		result['error-type'] = "noAddress"
+		result['error-message'] = "Address not found!"
+		return result
+
+
+def delete_address(address_id, user):
+	try:
+		address = Address.objects.get(id=address_id, user=user)
+		if address.is_referenced():
+			address.title = None
+			address.archived = True
+			address.save()
+			return True
+		else:
+			address.delete()
+			return True
+	except Address.DoesNotExist:
+		return False
+
+
+def address_title_used(user, title):
+	title = title.lower()
+	try:
+		address = Address.objects.get(user=user, title=title)
+		return address
+	except Address.DoesNotExist:
+		return None
 
 
 def set_pickup_time(delivery_id):
@@ -838,22 +1085,6 @@ def set_pickup_time(delivery_id):
 		if package.status == 'pc':
 			package.pickup_time = datetime.now()
 			package.save()
-
-
-def sync_delivery_packages_status_1(package_id):
-	package = Package.objects.get(id=package_id)
-	delivery = Delivery.objects.get(id=package.delivery.id)
-	total_packages_count = Package.objects.filter(delivery=delivery).exclude(status="rc").count()
-	carry_back_count = Package.objects.filter(Q(status="ca") | Q(status="c"), delivery=delivery).count()
-	handover_count = Package.objects.filter(delivery=delivery, status="d").count()
-	if total_packages_count == carry_back_count + handover_count:
-		if total_packages_count == handover_count:
-			delivery.status = "d"
-		elif total_packages_count == carry_back_count:
-			delivery.status = "ca"
-		else:
-			delivery.status = "pd"
-		delivery.save()
 
 
 def zone_division_name():
@@ -893,6 +1124,7 @@ def get_country_province_city_list(city_id):
 	data['selected-city-id'] = city_id
 	return data
 
+
 # ---------------------------------------------------------------------------
 # This is for testing perpose on develepment phase
 # Let this part remain at the bottom
@@ -900,10 +1132,9 @@ def get_country_province_city_list(city_id):
 
 
 def test_page(request):
-	pass
-# 	#cp.unset_new_task_for_courier(1)
+	package = Package.objects.get(id=16)
+	delivery = package.delivery
 	context = {
- 		'x': ""#cp.auto_dispatch_courier.id
+		'x': delivery
 	}
 	return render(request, "test-page.html", context)
-# #.set_new_task_for_courier(2)

@@ -2,4 +2,4 @@ ACTIVATED_TEXT = 'ACTIVATED'
 ACTIVATION_DAYS = 7
 REMEMBER_ME_DAYS = 30
 LOGIN_REDIRECT_URL = 'home'
-DEFAULT_AVATAR_URL = 'files/no_image/avatar.jpg'
+DEFAULT_PHOTO_URL = 'no_image/no_photo.jpg'

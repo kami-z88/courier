@@ -54,32 +54,6 @@
     </div>
 </div>
 <!-- Modal End -->
-<!-- Modal: Carry back item  -->
-<div class="modal fade" id="carryBackMolal" tabindex="-1" role="dialog" aria-labelledby="carryBackModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="carryBackModalLabel">Why are you carrying back this package?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="form-group">
-                        <label for="pickup-rejection-text" class="col-form-label">Reason:</label>
-                        <textarea class="form-control comment-box" id="carry-back-text" maxlength="100"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" id="do-carry-back" class="btn btn-primary btn-do" data-dismiss="modal" value="" disabled>OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal End -->
 <!-- Modal: Handover package  -->
 <div class="modal fade" id="handoverMolal" tabindex="-1" role="dialog" aria-labelledby="handoverModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -108,6 +82,39 @@
     </div>
 </div>
 <!-- Modal End -->
+<!-- Modal: report handover failure  -->
+<div class="modal jojo fade"  id="reportFailureMolal" tabindex="-1" role="dialog" aria-labelledby="reportFailureMolalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportFailureMolalLabel">Describe failure reason below</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="col-form-label">Recently used comments:</label>
+                        <select class="form-control">
+                            <option>Default select</option>
+                            <option>Default select</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="failure-text" class="col-form-label">Reason:</label>
+                        <textarea class="form-control comment-box failure-comment" id="failure-text" maxlength="100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-report-failure" class="btn btn-primary btn-do" data-dismiss="modal" value="" disabled>Report Handover Failure</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
 {% endblock %}
 
 {% block second_row %}
@@ -130,21 +137,21 @@
                     <span class="col-sm-2"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
                     <span class="col-sm-12 address"><b>From Address:</b>&nbsp;{{ delivery.from_address }}</span>
                         <hr class="separator"/>
-                    <span class="col-sm-2">Total Packages:<span class="badge badge-info">{{ delivery.package_set.all.count }}</span></span>
+                    <span class="col-sm-2">Total Packages:<span class="badge badge-info">{{ delivery.get_packages_in_pickup_target.count }}</span></span>
                         <span class="col-sm-2">Unhandled:<span class="badge badge-default">{{ delivery.get_unhandled_packages.count}} </span></span>
                         <span class="col-sm-2">Picked Up:<span class="badge badge-success">{{ delivery.get_picked_packages.count}}</span></span>
                         <span class="col-sm-2">Rejected:<span class="badge badge-danger">{{ delivery.get_rejected_packages.count}}</span></span>
                         <span class="col-sm-2"><!--Total service price--></span>
                         <span class="col-sm-2"><!--payment info--></span>
-                        {% for package in delivery.package_set.all %}
+                        {% for package in delivery.get_packages_in_pickup_target %}
                         <div class="row package-wrapper">
                             <span class="col-sm-4">
-                                {% if package.status == "rc" %}
+                                {% if package.status == "rp" %}
                                 <span class="place-holder">REJECTED</span>
                                 <button class="btn undo-reject-pickup" data-toggle="modal" data-target="#undoRejectPackageMolal" value='{"commentId":{{ package.comments.all.0.id }}, "packageId":{{ package.id }}}'>
                                     <i  class="fas fa-undo" ></i>&nbsp;Reject
                                 </button>
-                                {% elif package.status == "pc" %}
+                                {% elif package.status == "p" %}
                                 <button class="btn do-undo-pickup" value="{{ package.id }},undo"><i class="fas fa-undo"></i>&nbsp;Pick up</button>
                                 <span class="place-holder"><a class="text">PICKED UP</a></span>
                                 {% else %}
@@ -157,7 +164,7 @@
                             <span class="col-sm-4"><b>Package Type:</b>&nbsp;{{ package.template }}</span>
                             <span class="col-sm-4"><b>Sig. Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
                             <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
-                            {% if package.status == "rc" %}
+                            {% if package.status == "rp" %}
                                 <div class="col-sm-12 info-wrapper">
                                     <span class="rejection-text">
                                     {% for comment in package.comments.all%}
@@ -179,8 +186,8 @@
                     <div class="row package-wrapper handover" draggable="true" data-pckg-id="{{ package.id }}" ondragstart="drag_task(event)">
                         <span class="col-sm-4">
                             <button class="btn btn-default withdraw" data-toggle="modal" data-target="#withdrawTargetTask" value="package:{{ package.id }}"><i class="fas fa-undo"></i></button>
-                            <button class="btn btn-info action" data-toggle="modal" data-target="#carryBackMolal" onclick='set_modal_btn_value("#do-carry-back" ,{{ package.id }})'>Carry Back</button>
                             <button class="btn btn-success handover" data-toggle="modal" data-target="#handoverMolal" data-sig="{{package.signature}}" onclick='set_modal_btn_value("#do-handover" ,{{ package.id }})' >Handover</button>
+                            <button class="btn btn-danger report-failure" value="{{package.id}}:report-handover-failure">Handover Failure</button>
                             <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
                         </span>
                         <span class="col-sm-4"><b>Package Type:</b>&nbsp;{{ package.template }}</span>

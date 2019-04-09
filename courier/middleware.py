@@ -32,12 +32,18 @@ class ThreadLocalMiddleware(object):
 			from courier.models import Dispatcher, Courier
 			if Dispatcher.objects.filter(user=request.user).exists():
 				request.user.is_dispatcher = True
-			else:
+				request.user.role = "dispatcher"
 				request.user.is_courier = False
-
-			if Courier.objects.filter(user=request.user).exists():
+				request.user.is_user = False
+			elif Courier.objects.filter(user=request.user).exists():
 				request.user.is_courier = True
+				request.user.role = "courier"
+				request.user.is_dispatcher = False
+				request.user.is_user = False,
 			else:
+				request.user.is_user = True
+				request.user.role = "user"
+				request.user.is_dispatcher = False
 				request.user.is_courier = False
 
 			_thread_locals.request = request

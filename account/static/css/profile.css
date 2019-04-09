@@ -3,9 +3,14 @@
     padding-bottom: 20px;
 }
 .profile-sidebar {
-    background: #fff none repeat scroll 0 0;
+    background: #bcbcff;
     padding: 0;
     text-align: center;
+}
+
+.profile-sidebar > div {
+    text-align:center;
+    padding:0;
 }
 .profile-body{
     background: #fff none repeat scroll 0 0;
@@ -16,11 +21,27 @@
     padding: 0 20px;
 }
 
-.profile-avatar{
-    padding: 20px;
+.profile-photo{
+    padding: 30px;
 }
+
+.sidebar-menu {
+    padding:0.5em;
+    text-align:center;
+}
+
+.sidebar-menu:hover {
+    cursor:pointer;
+    color:blue;
+    font-weight:bold;
+}
+
+.sidebar-menu.top {
+    border-top: 1px solid #f0f4f7;
+}
+
 .profile-usermenu {
-    margin-top: 30px;
+    margin: 30px 0 2px 0;
     padding: 0;
     text-align: left;
 }
@@ -57,16 +78,128 @@
 }
 
 
-.container-box{
-    max-width: 600px;
-    padding: 15px;
+.wrapper-signin {
+    max-width: 400px;
+    padding: 1%;
     margin: 2% auto 0 auto;
+    background-color: #c5cdf5;
+    border: 1px solid #3c5bf6;
+    border-radius:5px;
+    box-shadow: 1px 1px 2px #3c5bf6;
+}
+
+.wrapper-signin > div {
+    margin-bottom:0.5em;
+    margin-top:0.5em;
 }
 
 .large-logo {
-    width:100%;
+    width:80%;
+    margin-right:auto;
+    margin-left:auto;
 }
 
 .large-logo:hover {
     opacity:0.8;
 }
+
+.logo-wrapper {
+    margin:0;
+    text-align:center;
+}
+
+.forgot-password {
+    float:right;
+}
+
+@media only screen and (max-width: 450px) {
+    .large-logo {
+        width:50%;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+}
+
+.btn.pull-right {
+    float:right;
+    float:right;
+}
+
+.upload-container {
+    min-height:100px;
+    position:relative;
+    text-align:center;
+    cursor:default !important;
+}
+
+.upload-image {
+    opacity: 0;
+}
+
+.upload-image-cover {
+    position:absolute;
+    width:95%;
+    top:10px;
+    right:5px;
+    background-color:#807979;
+    border-radius:20px 3px 3px 20px;
+    overflow:hidden;
+    padding:0;
+}
+
+.upload-label {
+    float:left;
+    padding:9px 5px 5px 5px;
+    font-size:0.7em;
+    width:30%;
+    color:#fff;
+    cursor:pointer;
+}
+
+#upload-input {
+    width:70%;
+    margin:0;
+}
+
+.btn-upload {
+    margin-top:20px;
+
+}
+
+.hidden {
+    display: none;
+}
+
+.btn-change-password {
+    margin-top: 10px;
+}
+
+.password-container {
+    cursor: default !important;
+}
+
+.btn {
+    cursor: pointer;
+}
+
+.error-message {
+    border: 1px solid red;
+    border-radius: 5px;
+    margin-top:10px;
+    padding:0.5em;
+    color:red;
+}
+
+.success-message {
+    margin-top:10px;
+    padding:0.5em;
+    color:green;
+}
+
+.profile-form {
+    width:100%;
+    padding:10px 5px 0 1em;
+}
+

@@ -52,6 +52,9 @@ $(document).ready(function(){
           case '/courier/tasks/rejected-pickup':
             $(".radio-inline.rp").addClass("selected");
             break;
+          case '/courier/tasks/failures':
+            $(".radio-inline.ft").addClass("selected");
+            break;
         case '/courier/tasks/target-task':
             $(".radio-inline.tt").addClass("selected");
             break;
@@ -293,33 +296,6 @@ $(".pickup-done").click(function(){
     });
 })
 
-function set_modal_btn_value(btn_id ,data){
-    $(btn_id).val(data);
-}
-
-$("#do-carry-back").click(function(){
-    package_id = $(this).val();
-    comment_text = $("#carry-back-text").val();
-    if(package_id && comment_text){
-        $.ajax({
-            url:'/courier/ajax/carry-back-package/',
-            type:'GET',
-            data:{
-                "packageId" : package_id,
-                "commentText" : comment_text,
-            },
-            success: function(data){
-                if (data.result == "success"){
-                    location.reload(true);
-                } else {
-                    alert("Operation failed!");
-                }
-            }
-
-        })
-    }
-})
-
 $(".handover").on("click", function(){
     sig = $(this).attr("data-sig");
     if(sig == "True"){
@@ -355,21 +331,78 @@ $("#do-handover").click(function(){
 
 })
 
-$(".open-undo-rejection-modal").click(function(){
+$(".open-pickup-rejection-modal").click(function(){
     var package_id = $(this).val();
-    $("#undo-pickup-reject").val(package_id);
+    $("#do-pickup-rejected").val(package_id);
 })
 
-$("#undo-pickup-reject").click(function(){
+$("#do-pickup-rejected").click(function(){
      var package_id = $(this).val();
      $.ajax({
-        url:'',
+        url:'/courier/ajax/pickup-rejected/',
         type:'Get',
         data: {
             'packageId': package_id,
         },
-        success: function(){
-
+        success: function(data){
+            if(data.result == "success"){
+                location.reload(true)
+            }else if(data.result == "failure"){
+                alert("Failure!")
+            }
         },
      });
+})
+
+$(".report-failure").click(function(){
+    delivery_id = $(this).val();
+    $("#do-report-failure").val(delivery_id);
+    $("#reportFailureMolal").modal('show');
+})
+
+$("#do-report-failure").click(function(){
+    value_str = $(this).val();
+    id = value_str.split(":")[0]
+    action = value_str.split(":")[1]
+    comment_text = $(".failure-comment").val();
+    if(delivery_id && comment_text){
+        $.ajax({
+            url:'/courier/ajax/report-failure/',
+            type:'GET',
+            data:{
+                "id" : id,
+                "commentText" : comment_text,
+                "action" :action,
+            },
+            success: function(data){
+                if (data.result == "success"){
+                    location.reload(true);
+                } else {
+                    alert("Operation failed!");
+                }
+            }
+
+        })
+    }
+})
+
+$(".btn-action").click(function(){
+    value_str = $(this).val();
+    item_id = value_str.split(":")[0];
+    item_type = value_str.split(":")[1];
+    $.ajax({
+        url: '/courier/ajax/add-failure-task-to-target/',
+        type: 'Get',
+        data: {
+            'item_id': item_id,
+            'item_type': item_type,
+        },
+        success: function(data){
+            if(data.result == 'success'){
+                location.reload(true);
+            } else {
+                alert( "Operation failed!")
+            }
+        }
+    });
 })

@@ -2,6 +2,8 @@
 This model is used to handle registration related features such as email confirmation
 """
 import datetime, os
+import random
+import string
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
@@ -10,7 +12,7 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.db.models.signals import post_save
 from django.utils import timezone, translation, six
 from django.utils.translation import ugettext_lazy as _
-from sorl.thumbnail import get_thumbnail
+from sorl.thumbnail import get_thumbnail, ImageField, delete
 from .modules.functions import generate_sha1
 
 
@@ -18,14 +20,21 @@ import account.settings as profile_settings
 from .modules.language_country import COUNTRIES, LANGUAGES
 from .modules.mail import send_mail
 from .managers import AccountManager
-from .utils import get_gravatar
+from .utils import get_grphoto
+
+
+# random string generator
+def string_generator(size):
+    chars = string.ascii_uppercase + string.ascii_lowercase
+    return ''.join(random.choice(chars) for _ in range(size))
+
 
 # used to get dynamic directory based on user's id
-def get_avatar_photo_path(instance, filename):
+def set_photo_file_path(instance, filename):
 	name, ext = os.path.splitext(filename)
-	filename = 'avatar{}'.format(ext)
+	filename = 'photo_{}{}'.format(string_generator(4), ext)
 	salt, hash = generate_sha1(instance.user.username, instance.user.pk)
-	return "avatar/{0}/{1}".format(hash, filename)
+	return "photo/{0}{1}/{2}".format(hash, salt, filename)
 
 
 class AccountSignup(models.Model):
@@ -159,21 +168,19 @@ class Profile(models.Model):
 		('p', 'Person'),
 		('c', 'Company'),
 	)
-
-	AVATAR_CHOICES = (
-		('g', 'Gravatar'),
-		('n', 'None'),
-		('u', 'Upload Image'),
-	)
-
 	user = models.OneToOneField(User, related_name='user', on_delete=models.CASCADE)
-	avatar_option = models.CharField(_('Avatar Option'), max_length=1, choices=AVATAR_CHOICES, default='g')
-	avatar = models.ImageField(_('If you chose "Upload Image" as avatar option this image will be used.'), upload_to=get_avatar_photo_path, blank=True, null=True)
-	bio = models.TextField(_('Bio'), default='', blank=True, null=True)
+	photo = models.ImageField(upload_to=set_photo_file_path, blank=True, null=True)
 	type = models.CharField(_('Gender'), max_length=1, default='n', choices=TYPE_CHOICES)
-	email = models.EmailField(blank=True, null=True, verbose_name=_('Public Mail: You can add a public email to your profile!'))
-
+	email = models.EmailField(blank=True, null=True)
 	deposit = models.DecimalField(max_digits=6, decimal_places=2, blank=False, null=False, default=0.0)
+	has_photo = True
+
+	def __init__(self, *args, **kwargs):
+		super(Profile, self).__init__(*args, **kwargs)
+		if not self.photo:
+			from .settings import DEFAULT_PHOTO_URL
+			self.photo = DEFAULT_PHOTO_URL
+			self.has_photo = False
 
 	def get_full_name(self):
 		"""
@@ -186,19 +193,32 @@ class Profile(models.Model):
 			name = user.username
 		return name.strip()
 
-	def get_avatar_url(self, size=256, crop='center', quality=100):
+	def get_photo_url(self, size=256, crop='center', quality=100):
 		"""
-		Returns the avatar image based on user's settings
+		Returns the photo image based on user's settings
 		"""
-		if self.avatar_option == 'n':
-			return False
-		elif self.avatar_option == 'g':
-			return get_gravatar(self.user.email, size)
-		elif self.avatar_option == 'u':
-			im = get_thumbnail(self.avatar, "{0}x{0}".format(size), crop=crop, quality=quality)
-			current_site = Site.objects.get_current()
+		if self.photo:
+			im = get_thumbnail(self.photo, "{0}x{0}".format(size), crop=crop, quality=quality)
 			return "{0}files/{1}".format(Site.objects.get_current(), im.name)
-		return profile_settings.DEFAULT_AVATAR_URL
+		else:
+			return profile_settings.DEFAULT_PHOTO_URL
+
+	def delete_photo(self, path=None, unset_path=True):
+		from .settings import DEFAULT_PHOTO_URL
+		if not path:
+			path = self.get_photo_full_path()
+		if self.photo and os.path.basename(path) != os.path.basename(DEFAULT_PHOTO_URL):
+			os.remove(path)
+			delete(self.photo, delete_file=True)
+		if unset_path:
+			self.photo = None
+			self.save()
+
+	def get_photo_full_path(self):
+		from project.settings import BASE_DIR
+		if self.photo:
+			file_path = os.path.join(BASE_DIR, 'project') + self.photo.url
+			return file_path
 
 	def __str__(self):
 		return self.user.username

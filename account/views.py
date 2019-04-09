@@ -1,102 +1,93 @@
+import json
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from django.contrib.auth.models import User
-
-from .forms import SignupForm, SinginForm, EditProfileForm, EditAccountForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import SignupForm, SinginForm, EditProfileForm, EditUserForm
 from .settings import REMEMBER_ME_DAYS, LOGIN_REDIRECT_URL
 from .models import AccountSignup, Profile
 
 
-def profile_list(request):
-	users = User.objects.all()
-
-	page = request.GET.get('page', 1)
-	paginator = Paginator(users, 20)
-	adjacent_pages = 5
-	page = int(page)
-	start_page = max(page - adjacent_pages, 1)
-	if start_page <= 3: start_page = 1
-	end_page = page + adjacent_pages + 1
-	if end_page >= paginator.num_pages - 1: end_page = page + 1
-	try:
-		users = paginator.page(page)
-	except PageNotAnInteger:
-		users = paginator.page(1)
-	except EmptyPage:
-		users = paginator.page(paginator.num_pages)
-
-	context = {
-		'users': users,
-		'paginator_range': range(start_page, end_page),
-	}
-	return render(request, "profile-list.html", context)
-
-
-def profile(request, username):
-	user = User.objects.get(username=username)
+def profile(request):
+	user = request.user
 	user_profile = Profile.objects.get(user=user)
-
-	#if request.user.is_superuser is not True and user_profile.privacy == 'p': # private
-		#return render(request, "profile-private.html")
-
 	context = {
 		'user': user,
-		'username': username,
 		'profile': user_profile,
 	}
 	return render(request, "profile.html", context)
 
 
-def account_edit(request, username):
-	"""
-	Account Form
-	"""
-	if request.user.is_superuser is not True and request.user.username != username :
-		return render(request, "profile-no-permission.html")
-
-	user = User.objects.get(username=username)
-	user_profile = Profile.objects.get(user=user)
-	form = EditAccountForm(instance=user)
-
+def change_password(request):
+	data = {}
 	if request.method == 'POST':
-		form = EditAccountForm(request.POST, request.FILES, instance=user)
-		if form.is_valid():
-			form.save()
-			return redirect('profile', username=user.username)
-	context = {
-		'user': user,
-		'profile': user_profile,
-		'form': form,
-	}
-	return render(request, "profile-account-edit.html", context)
+		user_id = request.POST.get("userId", None)
+		pass1 = str(request.POST.get("pass1", None)).strip()
+		pass2 = str(request.POST.get("pass2", None)).strip()
+		if str(user_id) != str(request.user.id):
+			data['error'] = "User ERROR"
+		elif len(pass1) < 8:
+			data['error'] = "Minimum characters ERROR"
+		elif pass1 != pass2:
+			data['error'] = "Password and Confirm mismatch"
+		else:
+			user = request.user
+			user_initial_pass = user.password
+			user.set_password(pass1)
+			user.save()
+			update_session_auth_hash(request, user)
+			if user_initial_pass != user.password:
+				data['result'] = "success"
+				request.user = user
+			else:
+				data['result'] = "failure"
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
 
 
-def profile_edit(request, username):
-	"""
-	Profile Form
-	"""
-	if request.user.is_superuser is not True and request.user.username != username :
-		return render(request, "profile-no-permission.html")
-
-	user = User.objects.get(username=username)
-	user_profile = Profile.objects.get(user=user)
-	form = EditProfileForm(instance=user_profile)
-
+def upload_profile_photo(request):
+	from .forms import UploadPhotoForm
+	profile = Profile.objects.get(user=request.user)
+	current_photo_path = profile.get_photo_full_path()
 	if request.method == 'POST':
-		form = EditProfileForm(request.POST, request.FILES, instance=user_profile)
+		form = UploadPhotoForm(request.POST, request.FILES, instance=profile)
 		if form.is_valid():
+			if profile.has_photo:
+				profile.delete_photo(current_photo_path, unset_path=False)
 			form.save()
-	context = {
-		'user': user,
-		'profile': user_profile,
-		'form': form,
-	}
-	return render(request, "profile-edit.html", context)
+	return redirect('profile')
+
+
+def delete_user_photo(request):
+	profile_id = request.GET.get('profileId', None)
+	data = {}
+	try:
+		profile = Profile.objects.get(id=profile_id, user=request.user)
+		profile.delete_photo()
+	except Profile.DoesNotExist:
+		pass
+	data = json.dumps(data)
+	return HttpResponse(data, content_type='application/json')
+
+
+def profile_edit(request):
+	user = request.user
+	user_profile = Profile.objects.get(user=user)
+	if request.method == 'POST':
+		form_user = EditUserForm(request.POST, instance=user)
+		form_profile = EditProfileForm(request.POST, instance=user_profile)
+		if form_profile.is_valid() and form_user.is_valid():
+			form_user.save()
+			updated_profile_instance = form_profile.save(commit=False)
+			if not user_profile.has_photo:
+				updated_profile_instance.photo = None
+			updated_profile_instance.save()
+		else:
+			print("form is not valid")
+	return redirect('profile')
 
 
 def signup(request):
@@ -111,7 +102,12 @@ def signup(request):
 		form = SignupForm(request.POST, request.FILES)
 		if form.is_valid():
 			user = form.save()
-			redirect_url = '/'
+			if user.id:
+				user.is_active = True
+				user.photo = None
+				user.save()
+				login(request, user)
+			redirect_url = reverse('profile')
 			return redirect(redirect_url)
 
 	context = {
@@ -123,12 +119,12 @@ def signup(request):
 def signin(request):
 	"""
 	login of an account.
-	1. Signup with (username or email) and password
+	1. Signin with (username or email) and password
 	2. redirect
 	"""
 	form = SinginForm()
 	if request.method == 'POST':
-		form = SinginForm(request.POST, request.FILES)
+		form = SinginForm(request.POST)
 		if form.is_valid():
 			identification, password, remember_me = (form.cleaned_data['identification'],
 													 form.cleaned_data['password'],
@@ -154,8 +150,10 @@ def signin(request):
 					request.session.set_expiry(0)
 
 				# Whereto now?
+				print("checkpoint 1")
 				return HttpResponseRedirect(redirect_url)
 			else:
+
 				# TODO: add message to show user that he is inactive
 				return redirect(LOGIN_REDIRECT_URL)
 
@@ -201,7 +199,7 @@ def activate(request, activation_key):
 				this_user = User.objects.get(email__iexact=user.email)
 				this_user.backend = 'django.contrib.auth.backends.ModelBackend'
 				login(request, user=this_user)
-				redirect_to = reverse('profile', kwargs={'username': user.username})
+				redirect_to = reverse('profile')
 				return redirect(redirect_to)
 			else:
 				return render(request, "activate_fail.html")

@@ -57,7 +57,7 @@
                 <div class="row form-group">
                     <label class="col-md-4 control-label" for="address-country">Country<span class="star">*</span></label>
                     <div class="col-md-8">
-                        <select  class="custom-select col-md-6" id="address-country">
+                        <select  class="custom-select address_item col-md-6" id="address-country">
                             {% if countries.count > 1 %}
                             <option selected value="0">Select country ...</option>
                             {% endif %}
@@ -70,7 +70,7 @@
                 <div class="row form-group">
                     <label class="col-md-4 control-label" for="address-province">Province<span class="star">*</span></label>
                     <div class="col-md-8">
-                        <select class="custom-select col-md-6" id="address-province">
+                        <select class="custom-select address_item col-md-6" id="address-province">
                             {% if provinces.count > 1 or provinces == ""%}
                             <option selected value="0">Select province ...</option>
                             {% endif %}
@@ -83,7 +83,7 @@
                 <div class="row form-group">
                     <label class="col-md-4 control-label" for="address-city">City/Town<span class="star">*</span></label>
                     <div class="col-md-8">
-                        <select class="custom-select col-md-6" id="address-city">
+                        <select class="custom-select address_item col-md-6" id="address-city">
                             {% if cities.count > 1 or cities == "" %}
                             <option selected value="0">Select city ...</option>
                             {% endif %}
@@ -132,7 +132,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" id="do-add-update-address" class="btn btn-primary btn-do" data-action1="0" value="">Save</button>
+                <button type="button" id="do-add-update-address" class="btn btn-primary btn-do" value="">Save</button>
             </div>
         </div>
     </div>
@@ -142,34 +142,35 @@
     <div class="row">
         <ul class="col-md-12 address">
             <h2 class="address-title">address book</h2>
-        {% for address_book in address_book.all %}
-            <li class="row">
-                <span class="col-md-12"><b>Title:</b>&nbsp;<span id="title{{ address_book.id }}">{{ address_book.title | capfirst}}</span></span>
+        {% for address in addresses %}
+            <li id="address-row-{{address.id}}" class="row">
+                <span class="col-md-6"><b>Title:</b>&nbsp;<span id="title{{ address.id }}">{{ address.title | capfirst}}</span></span>
+                <span class="col-md-6"><b>ID:</b>&nbsp;<span>{{ address.id }}</span></span>
                 <span class="col-md-12">
-                    <span class="address-book-title">Address:&nbsp;</span>&nbsp;{% if address_book.address.address2 %}{{ address_book.address.address2}},&nbsp;{% endif %}
-                    {{ address_book.address.address1 }},&nbsp;{{ address_book.address.city | title }},&nbsp;{{ address_book.address.get_province | title }},&nbsp;{{ address_book.address.get_country | title }}
+                    <span class="address-book-title">Address:&nbsp;</span>&nbsp;{% if address.address2 %}{{ address.address2}},&nbsp;{% endif %}
+                    {{ address.address1 }},&nbsp;{{ address.city | title }},&nbsp;{{ address.get_province.name | title }},&nbsp;{{ address.get_country.name | title }}
                 </span>
                 <span class="col-md-3">
-                    <span class="address-book-title">{{ zone_division_name }}:&nbsp;</span>{{ address_book.address.zip }}
+                    <span class="address-book-title">{{ zone_division_name }}:&nbsp;</span>{{ address.zip }}
                 </span>
-                {% if address_book.address.phone %}
+                {% if address.phone %}
                 <span class="col-md-3">
-                    <span class="address-book-title">Phone:&nbsp;</span>{{ address_book.address.phone }}
-                </span>
-                {% endif %}
-                {% if address_book.address.fax %}
-                <span class="col-md-3">
-                    <span class="address-book-title">Fax:&nbsp;</span>{{ address_book.address.fax }}
+                    <span class="address-book-title">Phone:&nbsp;</span>{{ address.phone }}
                 </span>
                 {% endif %}
-                {% if address_book.address.email %}
+                {% if address.fax %}
                 <span class="col-md-3">
-                    <span class="address-book-title">Email:&nbsp;</span>{{ address_book.address.email }}
+                    <span class="address-book-title">Fax:&nbsp;</span>{{ address.fax }}
+                </span>
+                {% endif %}
+                {% if address.email %}
+                <span class="col-md-3">
+                    <span class="address-book-title">Email:&nbsp;</span>{{ address.email }}
                 </span>
                 {% endif %}
                 <span class="col-md-12">
-                    <span class="col-md-1"><a href="#"  class="edit-address" data-toggle="1modal" data-addressbookid ="{{ address_book.id }}" data-target="#addressModal">Edit</a></span>
-                    <span class="col-md-2"><a href="#" class="confirm-delete"data-addressbookid="{{ address_book.id }}">Delete</a></span>
+                    <span class="col-md-1"><a href="#"  class="edit-address" data-toggle="1modal" data-addressid ="{{ address.id }}" data-target="#addressModal">Edit</a></span>
+                    <span class="col-md-2"><a href="#" class="confirm-delete"data-addressid="{{ address.id }}">Delete</a></span>
                 </span>
             </li>
         {% endfor %}

@@ -37,7 +37,7 @@
     border:1px solid #939ebe;
     padding:2px 8px 6px 8px;
     border-radius:5px;
-    width:120px;
+    width:125px;
     height:34px;
     text-align:center;
     background-color:#f1f8ff;
@@ -345,24 +345,70 @@ span.place-holder > .text {
     padding:0;
     margin:0;
 }
+.badge.counter {
+    color:#000000;
+    position:absolute;
+    padding:5px;
+    border-radius:40%;
+}
 
 .badge.target-pickup {
     background-color:#97D7EAB3;
-    color:#000000;
-    position:absolute;
     right:12px;
     top:-10px;
-    border-radius:40%;
-    padding:5px;
     }
 
 .badge.target-handover {
     background-color:#FFF864CC;
-    color:#000000;
-    position:absolute;
     right:35px;
     top:-10px;
-    border-radius:40%;
-    padding:5px;
 }
 
+.badge.should-pickup {
+    background-color:#97D7EAB3;
+    right:0;
+    top:-10px;
+}
+
+.badge.pickedup {
+    background-color:#FFF864CC;
+    right:0;
+    top:-10px;
+}
+
+.badge.rejected, .badge.failures {
+    background-color:#FF7464CC;
+    right:0;
+    top:-10px;
+}
+
+.btn-rows{
+    padding-bottom:0.4em !important;
+}
+
+.failure-wrapper {
+    padding:1em;
+    border-radius:20px;
+    margin-bottom:0.5em;
+}
+
+.failure-wrapper.pickup {
+    background-color:#97D7EAB3;
+}
+
+.failure-wrapper.handover {
+    background-color:#D1CC75CC;
+}
+
+
+.btn-action{
+    float:right;
+}
+
+.link-details {
+    color:blue;
+}
+
+.row.delivery-wrapper > span {
+    margin-bottom: 5px;
+}

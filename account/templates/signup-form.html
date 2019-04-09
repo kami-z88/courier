@@ -12,12 +12,12 @@
 {% block title %}{% trans "SignUp" %}{% endblock %}
 
 {% block content %}
-<div class="container-box">
-	<div class="container">
-		<div class="text-center">
-            <a class="navbar-brand" href="{% url 'home' %}">{% site_large_logo %}</a>
+<div class="container">
+	<div class="row wrapper-signin">
+		<div class="col-md-12 logo-wrapper">
+            <a href="{% url 'home' %}">{% site_large_logo %}</a>
         </div>
-		<div class="content clearfix">
+		<div class="col-md-12">
 			<form action="" method="post">
 				{% csrf_token %}
 				<fieldset>

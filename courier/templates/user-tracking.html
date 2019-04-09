@@ -16,6 +16,46 @@
 {% block title %}Tracking{% endblock %}
 
 {% block content %}
+<!-- Modal: Confirm cancel request-->
+<div class="modal fade" id="cancelRequestModal" tabindex="-1" role="dialog" aria-labelledby="cancelRequestModalTitle" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title address-form-title">Delivery Request Cancellation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+             <span>Do you want to cancel this delivery request?</span>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="do-cancel-request" type="button" class="btn btn-danger" data-dismiss="modal" value="">Cancel This Request</button>
+         </div>
+      </div>
+   </div>
+</div>
+<!-- Modal: Confirm cancel pickup or handover-->
+<div class="modal fade" id="cancelPackageModal" tabindex="-1" role="dialog" aria-labelledby="cancelRequestModalTitle" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title address-form-title">Pick up OR handover Cancellation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+             <span class="confirm-message">Do you want to cancel this package pick up or handover?</span>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="do-cancel-pickupHandover" type="button" class="btn btn-danger" data-dismiss="modal" value="">Cancel This pick up of handover</button>
+         </div>
+      </div>
+   </div>
+</div>
 <div class="container">
     <div class="row table-responsive tracking-table-wrapper">
         <table id="tracking-table" class="table table-striped">
@@ -25,7 +65,8 @@
                     <th>Package quantity</th>
                     <th>Delivery Status</th>
                     <th>Request Date</th>
-                    <th>Report</th>
+                    <th>Details</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,11 +76,49 @@
                     <td>{{ delivery.package_set.count }}</td>
                     <td>{{ delivery.get_status_display }}</td>
                     <td>{{ delivery.request_time_created }}</td>
-                    <td><a href="{% url 'delivery_report' delivery.id %}">Report</a></td>
+                    <td><a href="{% url 'delivery-details' delivery.id %}">Details</a></td>
+                    <td>
+                        {% if delivery.available_options_for_user %}
+                        <button class="btn btn-primary cancel-request" value="{{ delivery.id }}:{{ delivery.available_options_for_user.0 }}">
+                            {{delivery.available_options_for_user.1 | title}}
+                        </button>
+                        {% endif %}
+                    </td>
                 </tr>
+                {% if delivery.has_mutable_package %}
+                <tr  colspan="6">
+                    <td colspan="6">
+                        <table class="table table-striped package-table">
+                            <thead>
+                                <tr>
+                                   <th>Package Id</th>
+                                   <th>Tracking Id</th>
+                                   <th>Status</th>
+                                   <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for package in delivery.package_set.all %}
+                                <tr>
+                                    <td>{{package.id}}</td>
+                                    <td>{{package.tracking_id}}</td>
+                                    <td>{{package.get_status_display}}</td>
+                                    <td>
+                                        {% if package.is_mutable %}
+                                        <button class="btn btn-danger cancel-action" value="{{ package.id }}:{{ package.available_option_for_user.0 }}">
+                                            {{ package.available_option_for_user.1 | title}}
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                {% endif %}
             {% endfor %}
             </tbody>
-
         </table>
     </div>
 </div>

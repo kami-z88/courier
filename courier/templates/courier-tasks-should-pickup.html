@@ -7,32 +7,70 @@
 {% block title %}Should Pickup{% endblock %}
 
 {% block second_row %}
+<!-- Modal: report pickup failure  -->
+<div class="modal fade" id="reportFailureMolal" tabindex="-1" role="dialog" aria-labelledby="reportFailureMolalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportFailureMolalLabel">Describe failure reason below</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="col-form-label">Recently used comments:</label>
+                        <select class="form-control">
+                            <option>Default select</option>
+                            <option>Default select</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pickup-rejection-text" class="col-form-label">Reason:</label>
+                        <textarea class="form-control comment-box failure-comment" id="pickup-rejection-text" maxlength="100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-report-failure" class="btn btn-primary btn-do" data-dismiss="modal" value="" disabled>Report Pick up Failure</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
     {% for delivery in deliveries %}
     <div class="row delivery-wrapper" draggable="true" data-dlvry-id="{{ delivery.id }}" ondragstart="drag_task(event)">
-        <span class="col-sm-3">
+        <span class="col-sm-6">
             <button class="btn btn-default add-to-target" value="{{ delivery.id }},pickup">Add to target</button>
-            <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
-            <span class="badge badge-primary badge-pkg-count"> <i class="fas fa-cubes "><a class="package-count"> {{ delivery.package_set.count }}</a></i></span>
         </span>
-        <span class="col-sm-3"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title }}</span>
+        <span class="col-sm-3">
+            <button class="btn btn-danger report-failure" value="{{ delivery.id }}:report-pickup-failure">Report Pick up Failure</button>
+        </span>
+        <span class="col-sm-3">
+            <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
+            <span class="badge badge-primary badge-pkg-count"> <i class="fas fa-cubes "><a class="package-count"> {{ delivery.get_packages_to_pickup.count }}</a></i></span>
+        </span>
+        <span class="col-sm-4"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title }}</span>
         <span class="col-sm-4"><b>Request Time:</b>&nbsp;{{ delivery.request_time_created }}</span>
-        <span class="col-sm-2"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
+        <span class="col-sm-4"><b>Delivery ID:</b>&nbsp;{{ delivery.id }}</span>
         <span class="col-sm-12 address"><b>From Address:</b>&nbsp;{{ delivery.from_address }}</span>
         <div class="hideable hidden">
             <span class="col-md-8"><b>Requester:&nbsp;</b>{{ delivery.user.get_full_name }}</span>
             <span class="col-md-4"><b>Phone:&nbsp;</b>{{ delivery.from_address.phone }}</span>
             <hr class="separator"/>
-            <h6>Package Numbers:&nbsp;{{ delivery.package_set.count }}</h6>
-            {% for package in delivery.package_set.all %}
-            <div class="row package-wrapper">
-                <span class="col-sm-4"><b>Packge Type:</b>&nbsp;{{ package.template }}</span>
-                <span class="col-sm-4"><b>Sig. Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
-                <span class="col-sm-4">blank</span>
-                <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
-                <span class="col-sm-6"><b>Phone:</b>&nbsp;{{ package.to_address.phone }}</span>
-                <span class="col-sm-6"><b>Receiver Name:</b>&nbsp;</span>
-                <span class="col-sm-12"><b>Description:</b>&nbsp;{{ package.description }}</span>
-            </div>
+            <h6>Package Numbers:&nbsp;{{ delivery.get_packages_to_pickup.count }}</h6>
+            {% for package in delivery.get_packages_to_pickup %}
+                <div class="row package-wrapper">
+                    <span class="col-sm-4"><b>Package Type:</b>&nbsp;{{ package.template }}</span>
+                    <span class="col-sm-4"><b>Sig. Required?:</b>&nbsp;{{ package.signature|yesno:"Yes,No" }}</span>
+                    <span class="col-sm-4"><b>Package ID:</b>&nbsp;{{ package.id }}</span>
+                    <span class="col-sm-12 address"><b>To Address:</b>&nbsp;{{ package.to_address }}</span>
+                    <span class="col-sm-6"><b>Phone:</b>&nbsp;{{ package.to_address.phone }}</span>
+                    <span class="col-sm-6"><b>Receiver Name:</b>&nbsp;</span>
+                    <span class="col-sm-12"><b>Description:</b>&nbsp;{{ package.description }}</span>
+                </div>
             {% endfor %}
         </div>
     </div>

@@ -7,12 +7,46 @@
 {% block title %}Picked Up{% endblock %}
 
 {% block second_row %}
+<!-- Modal: report pickup failure  -->
+<div class="modal jojo fade"  id="reportFailureMolal" tabindex="-1" role="dialog" aria-labelledby="reportFailureMolalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportFailureMolalLabel">Describe failure reason below</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="col-form-label">Recently used comments:</label>
+                        <select class="form-control">
+                            <option>Default select</option>
+                            <option>Default select</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="failure-text" class="col-form-label">Reason:</label>
+                        <textarea class="form-control comment-box failure-comment" id="failure-text" maxlength="100"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="do-report-failure" class="btn btn-primary btn-do" data-dismiss="modal" value="" disabled>Report Pick up Failure</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal End -->
     {% for delivery in pickedup_deliveries %}
         {%  for package in delivery.package_set.all %}
-        {% if package.status == "pc" %}
+        {% if package.status == "p" %}
         <div class="row package-wrapper" draggable="true" data-pckg-id="{{ package.id }}" ondragstart="drag_task(event)">
-            <span class="col-sm-4">
+            <span class="col-sm-12 btn-rows">
                 <button class="btn btn-default add-to-target" value="{{ package.id }},handover">Add to target</button>
+                <button class="btn btn-danger report-failure" value="{{ package.id }}:report-handover-failure">Report Handover Failure</button>
                 <button class="btn expand-collapse pkg" ><i class="fas fa-expand"></i></button>
             </span>
             <span class="col-sm-4"><b>Packge Type:</b>&nbsp;{{ package.template }}</span>

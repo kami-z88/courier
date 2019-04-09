@@ -18,9 +18,10 @@
 {% block content %}
 <div class="container ">
     <div class="row delivery-report">
-        <dl class="row">
-            <dt class="col-sm-3">Delivery Type</dt>
-            <dd class="col-sm-9 delivery-type">{{ delivery.service_type.title}}</dd>
+        <div class="row">
+            <dt class="col-sm-3"><a href="{% url 'user_tracking' %}"><button class="btn">Back</button></a></dt>
+            <dd class="col-sm-5 delivery-type"><b>Service Type:</b>&nbsp;{{ delivery.service_type.title}}</dd>
+            <dd class="col-sm-4 delivery-type"><b>Delivery ID:</b>&nbsp;{{ delivery.id}}</dd>
 
             <dt class="col-sm-3">Pickup Address</dt>
             <dd class="col-sm-9 source-address">{{ delivery.from_address.get_one_line }}</dd>
@@ -39,7 +40,11 @@
                                     <span class="package-details-title">Status:&nbsp;</span>
                                     <span>{{ package.get_status_display }}</span>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-2">
+                                    <span class="package-details-title">Pckg ID:</span>
+                                    <span>{{ package.id }}</span>
+                                </div>
+                                <div class="col-md-2">
                                     <span>
                                         <button class="btn expand-collapse btn-primary" ><span class="btn-text">More Details</span><i class="fas fa-expand"></i></button>
                                     </span>
@@ -129,7 +134,7 @@
                     {% endfor %}
                 {% endif %}
             </dd>
-        </dl>
+        </div>
     </div>
 </div>
 {% endblock %}

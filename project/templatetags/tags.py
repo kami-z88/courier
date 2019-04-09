@@ -8,16 +8,16 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def logged_in_user_avatar(context, size="200x200",):
+def logged_in_user_photo(context, size="200x200",):
 	"""
-	:return user's profile avatar
+	:return user's profile photo
 	"""
 	if context['request'].user.is_authenticated:
 		profile = Profile.objects.get(user=context['request'].user)
-		avatar = profile.get_avatar_url(size=128)
-		im = get_thumbnail(avatar, "128x128", crop='center', quality=99)
+		photo = profile.get_photo_url(size=128)
+		im = get_thumbnail(photo, "128x128", crop='center', quality=99)
 		return "/files/{}".format(im.name)
-		return avatar
+		#return photo
 	else:
 		return False
 

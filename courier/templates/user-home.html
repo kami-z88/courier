@@ -2,6 +2,7 @@
 {% load static %}
 {% load tags %}
 {% load i18n %}
+{% load thumbnail %}
 
 {% block header %}
 <link href="{% static 'css/home.css' %}" rel="stylesheet">
@@ -36,20 +37,20 @@
 			    		<b class="caret"></b>
 			    	</a>
 			    	<div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-nav-dropdown">
-			    		<div class="nav-user-avatar-username-container">
-			    			{% if logged_in_user_avatar %}
-			    				<img src="{% logged_in_user_avatar %}" class="rounded-circle mx-auto d-flex nav-avatar">
-			    			{% endif %}
-			    			<h5 class="dropdown-item nav-avatar-username">@{{ request.user.username }}</h5>
+			    		<div class="nav-user-photo-username-container">
+			    			{% thumbnail profile.photo "50x50" crop="top" quality=100 as im %}
+			    				<img src="{{ im.url }}" class="rounded-circle mx-auto d-flex nav-photo">
+                            {% empty %}
+                            <span></span>
+			    			{% endthumbnail %}
 			    		</div>
 			    		{% if request.user.is_staff %}
 			    			<div class="dropdown-divider" role="separator"></div>
 			    			<a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a>
 			    		{%  endif %}
-			    		<div class="dropdown-divider" role="separator"></div>
 			    		<!-- <a class="dropdown-item" href="{% url 'user_deposit' %}">Deposit</a>
 			    		<a class="dropdown-item" href="{% url 'user_payments' %}">Payment History</a> -->
-			    		<a class="dropdown-item" href="{% url 'profile' user %}">Profile</a>
+			    		<a class="dropdown-item" href="{% url 'profile' %}">Profile</a>
 			    		<a class="dropdown-item" href="{% url 'signout' %}">Logout</a>
 			    	</div>
 			    </li>
@@ -64,7 +65,7 @@
 		<div class="col-md-6 wrapper">
             <div class="row">
                 <a href="{% url 'user_delivery' %}" class="middle-menu"><span>Request Delivery Service</span></a>
-                <a href="{% url 'user_tracking' %}" class="middle-menu"><span>Tracking</span></a>
+                <a href="{% url 'user_tracking' %}" class="middle-menu"><span>Tracking & Options</span></a>
                 <a href="{% url 'user_address_book' %}" class="middle-menu"><span>My Address Book</span></a>
             </div>
         </div>

@@ -12,16 +12,16 @@
 {% block title %}{% trans "Login" %}{% endblock %}
 
 {% block content %}
-<div class="container-box">
-	<div class="container">
-		<div class="text-center">
-            <a class="navbar-brand" href="{% url 'home' %}">{% site_large_logo %}</a>
+<div class="container">
+	<div class="row wrapper-signin">
+		<div class="col-md-12 logo-wrapper">
+            <a href="{% url 'home' %}">{% site_large_logo %}</a>
         </div>
-		<div class="content clearfix">
+		<div class="col-md-12">
 			<form action="" method="post">
 				{% csrf_token %}
 				<fieldset>
-					<h2>Signin</h2>
+					<h2>Sign In</h2>
 					<hr class="colorgraph">
 					{{ form.non_field_errors }}
 					{% for field in form %}
@@ -33,6 +33,7 @@
 						{% endif %}
 					{% endfor %}
 				</fieldset>
+                <span class="col-md-12"><a href="#" class="forgot-password">Forgot Password?</a></span>
 				<hr class="colorgraph">
 				<div class="clearfix">
 					{{ form.remember_me.errors }}
@@ -40,10 +41,10 @@
 				<span class="pull-left checkbox form-checkbox-container">
 					<label for="id_remember_me">{{ form.remember_me }} {{ form.remember_me.label }}</label>
 				</span>
-				<input type="submit" value="SignIn" class="btn btn-lg btn-primary pull-right" />
+				<input type="submit" value="Sign In" class="btn btn-lg btn-primary pull-right" />
 			</form>
 		</div>
-		<div class="container-open">
+		<div class="col-md-12">
 			Don't have an account? <a href="{% url 'signup' %}">Create Account</a>
 		</div>
 	</div>

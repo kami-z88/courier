@@ -3,7 +3,7 @@ This is a simple Boilerplate for starting Django projects. It includes a user ac
 
 ## Installation
 1. Clone Repository.
-2. Install "sorl-thumbnail" for avatar thumbnails and "django-widget-tweaks" for improving bootstrap integration with forms.
+2. Install "sorl-thumbnail" for photo thumbnails and "django-widget-tweaks" for improving bootstrap integration with forms.
 ```
 pip install git+git://github.com/mariocesar/sorl-thumbnail@v12.3
 pip install django-widget-tweaks
